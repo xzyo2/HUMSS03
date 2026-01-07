@@ -1,7 +1,51 @@
 // --- Configuration ---
 const START_DATE = "2026-01-12"; 
+
+// Master List (Matches the App's standard)
 const CLASS_LIST = [
     "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
+];
+
+// Birthday Data (Mapped to match CLASS_LIST format where possible)
+// Format: MM-DD
+const BIRTHDAY_DATA = [
+    { name: "Alcantara, Adrian", date: "01-15" },
+    { name: "Estoesta, Lorainne", date: "01-19" },
+    { name: "Decena, Angelo", date: "02-05" },
+    { name: "Villanueva, Mallory", date: "02-14" },
+    { name: "Montecillo, Jericho", date: "02-25" },
+    { name: "Arizobal, Mark", date: "03-06" },
+    { name: "Cabanilla, Carl", date: "03-12" },
+    { name: "Maglente, Tifanny", date: "03-14" },
+    { name: "Loyola, Princess", date: "03-20" },
+    { name: "Rivera, Christine", date: "04-10" },
+    { name: "Dela Cruz, Rain", date: "04-11" },
+    { name: "Tito, Natalie", date: "04-12" },
+    { name: "Mendez, Rosselle", date: "05-04" },
+    { name: "Fajutnao, Nikki", date: "05-06" },
+    { name: "Benito, Nasheia", date: "05-15" },
+    { name: "Pascua, Santy", date: "05-18" },
+    { name: "Clamor, John", date: "05-22" },
+    { name: "De Guzman, Arquin", date: "06-10" },
+    { name: "Caldozo, Zymone", date: "06-19" },
+    { name: "Faminial, Miguel", date: "06-24" },
+    { name: "Diego, Jonalyn", date: "07-01" }, // Added manually
+    { name: "Luaton, Rachel Anne", date: "07-21" }, // Added manually
+    { name: "Panganiban, Kim", date: "08-04" },
+    { name: "Malabanan, Vidette", date: "08-08" },
+    { name: "Cardinal, Clarisse", date: "08-25" },
+    { name: "Estañol, Jericho", date: "09-04" },
+    { name: "Armada, Rhyanna", date: "09-09" },
+    { name: "Rosales, Ann", date: "09-18" },
+    { name: "Añis, Troy", date: "09-27" },
+    { name: "Garcia, Clint", date: "10-20" },
+    { name: "Macaraan, Johanna", date: "10-25" },
+    { name: "Gamel, Exequiel", date: "10-30" },
+    { name: "Reyes, Roseyhellyn", date: "11-01" },
+    { name: "Quito, Ma. Eraiza", date: "11-11" },
+    { name: "Colango, Chesca", date: "11-13" },
+    { name: "Buccat, Cristine", date: "12-03" },
+    { name: "Terrible, Gabriel", date: "12-07" }
 ];
 
 const phrases = ["Best section known to man", "Worst section known to man"];
@@ -29,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(window.location.hash === '#attendance') loadAttendance();
     if(window.location.hash === '#funds') loadFunds();
     if(window.location.hash === '#records') loadRecords();
+    if(window.location.hash === '#birthdays') loadBirthdays();
 });
 
 // --- Nav ---
@@ -50,6 +95,107 @@ function showSection(id) {
     if(id === 'attendance') loadAttendance();
     if(id === 'funds') { fundsPage = 1; loadFunds(); }
     if(id === 'records') loadRecords();
+    if(id === 'birthdays') loadBirthdays();
+}
+
+// ================= BIRTHDAY LOGIC (NEW) =================
+
+function loadBirthdays() {
+    const container = document.getElementById('birthdayGrid');
+    container.innerHTML = '';
+    
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    
+    // 1. Calculate Time Diff for each student
+    const processedBirthdays = BIRTHDAY_DATA.map(b => {
+        const [month, day] = b.date.split('-').map(Number);
+        
+        // Create date for this year
+        let nextBday = new Date(currentYear, month - 1, day);
+        
+        // If passed, move to next year
+        if (nextBday < today && nextBday.getDate() !== today.getDate()) {
+            nextBday.setFullYear(currentYear + 1);
+        }
+        
+        // Reset time to midnight for accurate day calc
+        const diffMs = nextBday - today;
+        
+        // Calculate units
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+        
+        return {
+            name: b.name,
+            displayDate: nextBday.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+            diffDays: diffDays,
+            diffHours: diffHours,
+            isToday: diffDays === 0
+        };
+    });
+
+    // 2. Sort: Lowest diff first (Nearest)
+    processedBirthdays.sort((a, b) => a.diffDays - b.diffDays);
+
+    // 3. Render
+    processedBirthdays.forEach((b, index) => {
+        let rankClass = 'rank-standard';
+        if (index === 0) rankClass = 'rank-1';
+        else if (index === 1) rankClass = 'rank-2';
+        else if (index === 2) rankClass = 'rank-3';
+        else if (index === 3) rankClass = 'rank-4';
+        else if (index === 4) rankClass = 'rank-5';
+
+        // Time Text Logic
+        let timeText = `${b.diffDays} Days Left`;
+        let timeClass = '';
+
+        if (b.isToday) {
+            timeText = "🎂 Happening Today!";
+            timeClass = "time-red";
+        } else if (b.diffHours < 24) {
+            timeText = `${b.diffHours} Hours Left`;
+            if (b.diffHours < 12) {
+                timeClass = "time-red"; // Red if < 12 hours
+            }
+        }
+
+        // HTML Structure
+        let html = '';
+        if (index === 0) {
+            // Big Box Layout
+            html = `
+                <div class="b-card ${rankClass}">
+                    <h3>${b.name}</h3>
+                    <div class="b-date">${b.displayDate}</div>
+                    <div class="b-countdown ${timeClass}">${timeText}</div>
+                </div>
+            `;
+        } else if (index < 5) {
+            // Medium/Small Box Layout
+            html = `
+                <div class="b-card ${rankClass}">
+                    <h3>${b.name}</h3>
+                    <div class="b-countdown ${timeClass}">${timeText}</div>
+                    <div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div>
+                </div>
+            `;
+        } else {
+            // Standard List Layout
+            html = `
+                <div class="b-card ${rankClass}">
+                    <div class="b-info">
+                        <h3>${b.name}</h3>
+                        <div class="b-date">${b.displayDate}</div>
+                    </div>
+                    <div class="b-countdown ${timeClass}">${timeText}</div>
+                </div>
+            `;
+        }
+
+        container.insertAdjacentHTML('beforeend', html);
+    });
 }
 
 // ================= ADMIN SYSTEM =================
@@ -206,11 +352,12 @@ async function loadRecords() {
                     hoverTitle = 'title="Click to view details"';
                 }
 
+                // Updated Grammar here
                 const html = `
                     <div class="record-card" ${clickAction} ${hoverTitle} style="${cursorStyle}">
                         <div class="r-info">
                             <h3>${s.name}</h3>
-                            <div class="privacy-text">Due to privacy reasons, reason for violation will not be set public. Message any classroom officer.</div>
+                            <div class="privacy-text">For privacy reasons, specific details are hidden. Contact a class officer for inquiries.</div>
                         </div>
                         <div class="violation-badge">Violation: ${s.count}</div>
                     </div>
@@ -282,7 +429,6 @@ async function submitViolation() {
 function viewStudentHistory(name) {
     if (currentUserRole !== 'admin') return;
 
-    // Show View
     document.getElementById('adminModal').style.display = 'block';
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('logoutView').style.display = 'none';
@@ -298,13 +444,9 @@ function viewStudentHistory(name) {
     if (studentViolations.length === 0) {
         historyContainer.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Clean Record. No violations.</div>';
     } else {
-        // Sort by newest first
         studentViolations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
         studentViolations.forEach(v => {
             const date = new Date(v.created_at).toLocaleString();
-            
-            // Note: We use a wrapper div (.history-content) for text so the button sits on the right
             const html = `
                 <div class="history-item">
                     <div class="history-content">
@@ -337,11 +479,7 @@ async function deleteViolation(id, studentName) {
 
         if(res.ok) {
             showToast("Violation removed", "success");
-            
-            // 1. Refresh Global Data (Updates the counts on main screen)
             await loadRecords();
-            
-            // 2. Refresh the History View (So the item disappears immediately)
             viewStudentHistory(studentName); 
         } else {
             showToast("Failed to delete", "error");
@@ -653,4 +791,3 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
-
