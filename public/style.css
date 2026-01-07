@@ -1,14 +1,25 @@
 :root {
-    --bg-dark: #121212;
-    --text-main: #e0e0e0;
-    --text-muted: #888888;
-    /* GREY THEME */
-    --accent: #d4d4d4; 
-    --accent-glow: rgba(212, 212, 212, 0.3);
-    --glass-bg: rgba(255, 255, 255, 0.05);
+    --bg-dark: #0a0a12; /* Darker, slightly blue-tinted bg */
+    --text-main: #ffffff;
+    --text-muted: #a0a0b0;
+    
+    /* DEFAULT THEME: ELECTRIC BLUE */
+    --accent: #29b6f6; 
+    --accent-glow: rgba(41, 182, 246, 0.4);
+    
+    --glass-bg: rgba(20, 30, 40, 0.6);
     --glass-border: rgba(255, 255, 255, 0.1);
-    --danger: #ff5252;
-    --success: #69f0ae; /* Soft Green */
+    
+    /* FIXED STATUS COLORS (Won't change with theme) */
+    --danger: #ff1744;
+    --success: #00e676;
+}
+
+/* --- SECRETARY THEME (PINK) --- */
+body.theme-pink {
+    --accent: #ff4081;
+    --accent-glow: rgba(255, 64, 129, 0.4);
+    --glass-bg: rgba(40, 20, 30, 0.6); /* Slight pink tint in glass */
 }
 
 * { box-sizing: border-box; }
@@ -20,20 +31,30 @@ body {
     color: var(--text-main);
     overflow-x: hidden;
     height: 100vh;
+    transition: background-color 0.5s ease; /* Smooth Theme Transition */
 }
 
-/* Background Blob (Greyscale) */
+/* Background Blob */
 .gradient-blob {
     position: fixed;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle at center, #2c2c2c 0%, #121212 50%);
+    background: radial-gradient(circle at center, rgba(41, 182, 246, 0.15) 0%, var(--bg-dark) 60%);
     z-index: -1;
     animation: rotateBlob 20s infinite linear;
+    transition: background 0.5s ease;
+}
+body.theme-pink .gradient-blob {
+    background: radial-gradient(circle at center, rgba(255, 64, 129, 0.15) 0%, var(--bg-dark) 60%);
 }
 @keyframes rotateBlob { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* --- GLOBAL ELEMENTS (With Transitions) --- */
+button, input, select, .glass-card, h2 i, .nav-btn {
+    transition: all 0.5s ease; /* Ensures color changes are smooth */
+}
 
 /* --- GLOBAL ADMIN BUTTON --- */
 #globalAdminBtn {
@@ -41,7 +62,7 @@ body {
     top: 25px;
     right: 25px;
     z-index: 1100; 
-    background: rgba(30, 30, 30, 0.6);
+    background: rgba(15, 20, 30, 0.6);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border);
     color: var(--text-muted);
@@ -52,73 +73,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 #globalAdminBtn:hover {
-    color: var(--bg-dark);
+    color: white;
     background: var(--accent);
-    box-shadow: 0 0 15px var(--accent-glow);
+    box-shadow: 0 0 20px var(--accent-glow);
 }
 #globalAdminBtn.logged-in {
     border-color: var(--success);
     color: var(--success);
-    background: rgba(105, 240, 174, 0.1);
+    background: rgba(0, 230, 118, 0.1);
 }
-
-/* --- FUNDS SECTION STYLES --- */
-.funds-hero {
-    text-align: center;
-    padding: 20px 0 40px 0;
-}
-.balance-label {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-.balance-amount {
-    font-size: 3.5rem;
-    font-weight: 700;
-    color: var(--text-main);
-    margin: 5px 0;
-    text-shadow: 0 0 20px rgba(255,255,255,0.1);
-}
-
-.transaction-list {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.transaction-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.03);
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid transparent;
-    transition: 0.2s;
-}
-.transaction-item:hover { border-color: var(--glass-border); background: rgba(255,255,255,0.05); }
-
-.t-info h4 { margin: 0; font-size: 1rem; font-weight: 500; }
-.t-info span { font-size: 0.75rem; color: var(--text-muted); }
-.t-amount { font-weight: 600; font-size: 1rem; }
-.income { color: var(--success); }
-.expense { color: var(--danger); }
-
-.load-more-btn {
-    width: 100%;
-    padding: 12px;
-    margin-top: 20px;
-    background: transparent;
-    border: 1px solid var(--glass-border);
-    color: var(--text-muted);
-    border-radius: 8px;
-    cursor: pointer;
-}
-.load-more-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 /* --- NAVIGATION --- */
 nav.glass-nav {
@@ -126,9 +92,8 @@ nav.glass-nav {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(20, 20, 20, 0.85);
+    background: rgba(15, 20, 30, 0.8);
     backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     padding: 8px 10px;
     border-radius: 50px;
     border: 1px solid var(--glass-border);
@@ -136,8 +101,6 @@ nav.glass-nav {
     gap: 5px;
     z-index: 100;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-    width: auto;
-    max-width: 95%;
 }
 .nav-btn {
     background: none;
@@ -145,7 +108,6 @@ nav.glass-nav {
     color: var(--text-muted);
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.3s ease;
     padding: 10px 20px;
     border-radius: 30px;
     display: flex;
@@ -154,24 +116,23 @@ nav.glass-nav {
 }
 .nav-btn:hover { color: white; background: rgba(255,255,255,0.05); }
 .nav-btn.active {
-    color: var(--bg-dark); /* Dark text on light button */
+    color: white;
     background: var(--accent);
     box-shadow: 0 0 15px var(--accent-glow);
     font-weight: 600;
 }
 
-/* --- COMMON STYLES --- */
+/* --- SECTIONS --- */
 .page-section { display: none; min-height: 100vh; padding-top: 100px; animation: fadeSlideUp 0.5s ease; }
 .active-section { display: block; }
 @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Home */
 #home { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
 .hero-content h1 { font-size: 3rem; font-weight: 700; margin: 0; }
-.cursor { color: var(--accent); }
+.cursor { color: var(--accent); animation: blink 1s step-end infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .footer-credit { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: #555; }
 
-/* Glass Card */
 .glass-card {
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
@@ -186,44 +147,68 @@ nav.glass-nav {
 .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .header-row h2 i { color: var(--accent); margin-right: 12px; filter: drop-shadow(0 0 5px var(--accent-glow)); }
 
-/* Inputs & Forms */
+/* --- FUNDS SPECIFIC --- */
+.funds-hero { text-align: center; padding: 20px 0 40px 0; }
+.balance-label { font-size: 0.9rem; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+.balance-amount { font-size: 3.5rem; font-weight: 700; color: white; margin: 5px 0; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+.transaction-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+.transaction-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;
+    border: 1px solid transparent; transition: 0.2s;
+}
+.transaction-item:hover { border-color: var(--glass-border); background: rgba(255,255,255,0.05); }
+.t-info h4 { margin: 0; font-size: 1rem; font-weight: 500; }
+.t-info span { font-size: 0.75rem; color: var(--text-muted); }
+.t-amount { font-weight: 600; font-size: 1rem; }
+.income { color: var(--success) !important; text-shadow: 0 0 10px rgba(0, 230, 118, 0.3); }
+.expense { color: var(--danger) !important; text-shadow: 0 0 10px rgba(255, 23, 68, 0.3); }
+
+.load-more-btn { width: 100%; padding: 12px; margin-top: 20px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 8px; cursor: pointer; }
+.load-more-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* --- INPUTS & FORMS --- */
 .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; align-items: end; }
 input, select {
-    width: 100%;
-    padding: 12px;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    color: white;
-    outline: none;
-    font-family: inherit;
-    font-size: 0.95rem;
-    transition: 0.3s;
+    width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+    border-radius: 12px; color: white; outline: none; font-family: inherit; font-size: 0.95rem;
 }
-input:focus, select:focus { border-color: var(--accent); }
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+/* CHECKBOX FIX (Keeps them small) */
+input[type="checkbox"] {
+    width: 20px; height: 20px; padding: 0; margin-right: 10px;
+    display: inline-block; vertical-align: middle; accent-color: var(--accent);
+    background: transparent; border: none; cursor: pointer;
+}
+.checklist-item label { display: flex; align-items: center; width: 100%; cursor: pointer; padding: 8px 0; }
 
 /* Buttons */
-.action-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 12px; color: var(--bg-dark); font-weight: 600; margin-top: 15px; cursor: pointer; }
-.action-btn-small { background: var(--accent); color: var(--bg-dark); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+.action-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: 12px; color: white; font-weight: 600; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 15px var(--accent-glow); }
+.action-btn:hover { transform: translateY(-2px); }
+.action-btn-small { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px var(--accent-glow); }
+.delete-icon-btn-large { background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.3); color: var(--danger); border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 1.1rem; }
+.delete-icon-btn-large:hover { background: var(--danger); color: white; box-shadow: 0 0 15px rgba(255, 71, 87, 0.4); }
 
 /* Modal */
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; }
-.modal-glass { background: #161616; width: 90%; max-width: 450px; margin: 15vh auto; padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; }
+.modal-glass { background: #1a1a24; width: 90%; max-width: 450px; margin: 15vh auto; padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
 .close { float: right; font-size: 24px; cursor: pointer; color: var(--text-muted); }
 
 /* Table */
 .table-wrapper { overflow-x: auto; border-radius: 12px; background: rgba(0,0,0,0.2); margin-top: 10px; }
 table { width: 100%; border-collapse: collapse; min-width: 300px; }
 th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--glass-border); }
-th { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
+th { color: var(--accent); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
 .status-pill { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-.status-present { background: rgba(105, 240, 174, 0.1); color: var(--success); }
-.status-absent { background: rgba(255, 82, 82, 0.1); color: var(--danger); }
+.status-present { background: rgba(0, 230, 118, 0.15); color: var(--success); border: 1px solid rgba(0, 230, 118, 0.3); }
+.status-absent { background: rgba(255, 23, 68, 0.15); color: var(--danger); border: 1px solid rgba(255, 23, 68, 0.3); }
 
 /* Toast */
 #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
-.toast { background: #1e1e1e; border-left: 4px solid var(--accent); color: white; padding: 15px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.7s forwards; border: 1px solid var(--glass-border); }
+.toast { background: #1a1a24; border-left: 4px solid var(--accent); color: white; padding: 15px 20px; border-radius: 8px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.7s forwards; border: 1px solid var(--glass-border); box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
 .toast.success { border-left-color: var(--success); } .toast.error { border-left-color: var(--danger); }
+.toast i { color: var(--accent); } .toast.success i { color: var(--success); } .toast.error i { color: var(--danger); }
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
 
@@ -236,28 +221,4 @@ th { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
     .nav-btn i { font-size: 1.4rem; margin: 0; } .nav-btn span { display: none; }
     .controls-grid { grid-template-columns: 1fr; gap: 10px; }
     .balance-amount { font-size: 2.5rem; }
-}
-
-/* --- FIX FOR CHECKBOXES --- */
-/* This overrides the general input styling so checkboxes aren't huge */
-input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    margin-right: 10px;
-    display: inline-block;
-    vertical-align: middle;
-    accent-color: var(--danger); /* Red checkmark */
-    background: transparent;
-    border: none;
-    cursor: pointer;
-}
-
-/* Ensure the label sits next to it nicely */
-.checklist-item label {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    cursor: pointer;
-    padding: 8px 0;
 }
