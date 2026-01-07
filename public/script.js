@@ -98,16 +98,21 @@ function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
 }
 
+// ... (Previous parts of script.js remain the same) ...
+
 function logout() {
     sessionPassword = "";
     currentUserRole = null;
     
-    // Reset UI Indicators
+    // 1. Reset Theme to Default (Blue)
+    document.body.classList.remove('theme-pink');
+    
+    // 2. Reset UI Indicators
     const globalBtn = document.getElementById('globalAdminBtn');
     globalBtn.classList.remove('logged-in');
     globalBtn.innerHTML = '<i class="fas fa-lock"></i>';
     
-    // Hide all admin buttons
+    // 3. Hide all admin buttons
     document.getElementById('attendanceAdminActionBtn').style.display = 'none';
     document.getElementById('fundsAdminActionBtn').style.display = 'none';
     
@@ -140,7 +145,6 @@ async function verifyAdmin() {
     err.textContent = "";
 
     try {
-        // Send Login Check to appropriate API
         const res = await fetch(endpoint, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -158,13 +162,19 @@ async function verifyAdmin() {
             globalBtn.classList.add('logged-in');
             globalBtn.innerHTML = '<i class="fas fa-unlock"></i>';
 
-            // Show role-specific buttons
-            if (role === 'secretary') document.getElementById('attendanceAdminActionBtn').style.display = 'block';
-            if (role === 'treasurer') document.getElementById('fundsAdminActionBtn').style.display = 'block';
+            // THEME LOGIC:
+            // If Secretary -> Pink Theme
+            // If Treasurer -> Default Blue (Remove Pink if present)
+            if (role === 'secretary') {
+                document.body.classList.add('theme-pink');
+                document.getElementById('attendanceAdminActionBtn').style.display = 'block';
+            } else if (role === 'treasurer') {
+                document.body.classList.remove('theme-pink');
+                document.getElementById('fundsAdminActionBtn').style.display = 'block';
+            }
 
             showToast(`Welcome, ${user}`, "success");
             
-            // Clear inputs
             document.getElementById('adminUser').value = '';
             document.getElementById('adminPass').value = '';
         } else {
@@ -514,3 +524,4 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
+
