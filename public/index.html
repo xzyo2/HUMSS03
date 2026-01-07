@@ -84,16 +84,23 @@
     <section id="records" class="page-section"><div class="glass-card"><h2>Records Coming Soon</h2></div></section>
     <section id="birthdays" class="page-section"><div class="glass-card"><h2>Birthdays Coming Soon</h2></div></section>
 
-    <div id="adminModal" class="modal">
+<div id="adminModal" class="modal">
         <div class="modal-glass">
             <span class="close" onclick="closeAdminModal()">&times;</span>
             
             <div id="loginView">
                 <h3>Restricted Access</h3>
-                <input type="text" id="adminUser" placeholder="Username (secretary / Audit)" style="margin-bottom:10px;">
+                <input type="text" id="adminUser" placeholder="Username" style="margin-bottom:10px;">
                 <input type="password" id="adminPass" placeholder="Password">
                 <button class="action-btn" onclick="verifyAdmin()">Unlock</button>
                 <p id="loginError" class="error-text" style="color:var(--danger); margin-top:10px;"></p>
+            </div>
+
+            <div id="logoutView" style="display:none; text-align: center;">
+                <h3>Confirm Logout</h3>
+                <p style="color: #888; margin-bottom: 20px;">Are you sure you want to end your session?</p>
+                <button class="action-btn" style="background: var(--danger); color: white;" onclick="logout()">Yes, Logout</button>
+                <button class="action-btn" style="background: transparent; border: 1px solid #444; color: #888; margin-top: 10px;" onclick="closeAdminModal()">Cancel</button>
             </div>
 
             <div id="dashboardView" style="display:none;">
@@ -103,7 +110,7 @@
                 <div class="student-checklist" id="studentChecklist" style="margin-top:10px; max-height:200px; overflow-y:auto;"></div>
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button id="saveBtn" class="action-btn" style="flex: 2;" onclick="submitAttendance()">Save Records</button>
-                    <button class="action-btn" style="flex: 1; background:rgba(255,82,82,0.2); color:var(--danger);" onclick="deleteDateRecords()"><i class="fas fa-trash"></i></button>
+                    <button class="delete-icon-btn-large" style="flex: 1;" onclick="deleteDateRecords()"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
 
@@ -138,3 +145,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
