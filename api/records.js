@@ -10,19 +10,19 @@ const pool = mysql.createPool({
 });
 
 export default async function handler(req, res) {
-    // SECURE: Now reads from Vercel settings, not visible in code
     const ADMIN_PASS = process.env.RECORDS_ADMIN_PASSWORD; 
 
     try {
         // GET: Fetch All Violations
         if (req.method === 'GET') {
+            // We select ID now too so we can delete specific rows
             const [rows] = await pool.query('SELECT * FROM student_violations ORDER BY created_at DESC');
             return res.status(200).json(rows);
         }
 
-        // POST: Add Violation OR Login Check
+        // POST: Add, Login, or DELETE
         if (req.method === 'POST') {
-            const { action, student_name, reason, password } = req.body;
+            const { action, student_name, reason, password, id } = req.body;
 
             // 1. Security Check
             if (password !== ADMIN_PASS) {
@@ -41,6 +41,13 @@ export default async function handler(req, res) {
                     [student_name, reason]
                 );
                 return res.status(200).json({ message: 'Violation Added' });
+            }
+
+            // 4. DELETE VIOLATION (NEW)
+            if (action === 'delete') {
+                if (!id) return res.status(400).json({ error: 'ID required' });
+                await pool.execute('DELETE FROM student_violations WHERE id = ?', [id]);
+                return res.status(200).json({ message: 'Deleted' });
             }
         }
 
