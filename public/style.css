@@ -4,8 +4,8 @@
     --text-muted: #94a3b8;
     
     /* PROFESSIONAL BLUE THEME */
-    --accent: #3b82f6; /* Solid Royal Blue */
-    --glass-bg: #1e232e; /* Solid semi-dark background */
+    --accent: #3b82f6; 
+    --glass-bg: #1e232e;
     --glass-border: #2d3748; 
     
     /* STATUS COLORS */
@@ -15,7 +15,7 @@
 
 /* --- SECRETARY THEME (Matte Pink) --- */
 body.theme-pink {
-    --accent: #ec4899; /* Solid Pink */
+    --accent: #ec4899; 
     --glass-bg: #2d1e25;
 }
 
@@ -38,29 +38,20 @@ body {
     transition: background-color 0.5s ease;
 }
 
-/* --- ALIVE BACKGROUND (The Fix) --- */
+/* --- ALIVE BACKGROUND --- */
 .gradient-blob {
     position: fixed;
-    top: -50%; 
-    left: -50%; 
-    width: 200%; 
-    height: 200%;
-    /* Asymmetric Gradient: This makes the rotation visible */
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    /* Asymmetric Gradient */
     background: radial-gradient(circle at 60% 40%, rgba(59, 130, 246, 0.25) 0%, rgba(18, 20, 24, 0) 45%);
     z-index: -1;
     animation: rotateBlob 25s infinite linear;
     transition: background 0.5s ease;
 }
-
-/* Pink Theme Background */
 body.theme-pink .gradient-blob {
     background: radial-gradient(circle at 60% 40%, rgba(236, 72, 153, 0.25) 0%, rgba(18, 20, 24, 0) 45%);
 }
-
-@keyframes rotateBlob { 
-    from { transform: rotate(0deg); } 
-    to { transform: rotate(360deg); } 
-}
+@keyframes rotateBlob { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* --- GLOBAL TRANSITIONS --- */
 button, input, select, .glass-card, h2 i, .nav-btn, .action-btn {
@@ -143,13 +134,9 @@ nav.glass-nav {
 .income { color: var(--success) !important; }
 .expense { color: var(--danger) !important; }
 
-/* Delete Button (Red) */
 .t-delete-btn {
-    background: #3a1515;
-    color: var(--danger);
-    border: 1px solid var(--danger);
-    width: 28px; height: 28px;
-    border-radius: 6px; 
+    background: #3a1515; color: var(--danger); border: 1px solid var(--danger);
+    width: 28px; height: 28px; border-radius: 6px; 
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; margin-left: 15px; font-size: 0.8rem;
 }
@@ -157,6 +144,38 @@ nav.glass-nav {
 
 .load-more-btn { width: 100%; padding: 12px; margin-top: 20px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 8px; cursor: pointer; }
 .load-more-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.02); }
+
+/* --- RECORDS SPECIFIC --- */
+.records-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px; }
+.record-card {
+    background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border);
+    border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: flex-start;
+    transition: 0.3s ease;
+}
+.record-card:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--accent); }
+.r-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 600; color: white; }
+.privacy-text { font-size: 0.8rem; color: var(--text-muted); font-style: italic; opacity: 0.7; }
+.violation-badge {
+    background: rgba(239, 68, 68, 0.15); color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 12px;
+    border-radius: 8px; font-weight: 600; font-size: 0.9rem; white-space: nowrap;
+}
+
+/* History List in Modal */
+.history-item {
+    background: rgba(255, 255, 255, 0.03); border-left: 3px solid var(--danger);
+    padding: 12px; margin-bottom: 8px; border-radius: 0 6px 6px 0;
+}
+.history-date { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; display: block; }
+.history-reason { font-size: 0.9rem; color: #e2e8f0; }
+
+/* Search Bar with Icon Inside */
+.search-wrapper { position: relative; width: 100%; }
+.search-wrapper i {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); pointer-events: none; font-size: 0.9rem;
+}
+.search-wrapper input { padding-left: 45px; width: 100%; }
 
 /* --- INPUTS & FORMS --- */
 .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; align-items: end; }
@@ -166,11 +185,9 @@ input, select {
 }
 input:focus, select:focus { border-color: var(--accent); background: #0b0f19; }
 
-/* CHECKBOXES */
 input[type="checkbox"] {
     width: 18px; height: 18px; padding: 0; margin-right: 10px;
-    display: inline-block; vertical-align: middle; accent-color: var(--accent);
-    cursor: pointer;
+    display: inline-block; vertical-align: middle; accent-color: var(--accent); cursor: pointer;
 }
 .checklist-item label { display: flex; align-items: center; width: 100%; cursor: pointer; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
@@ -202,6 +219,8 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 .toast i { color: var(--accent); } .toast.success i { color: var(--success); } .toast.error i { color: var(--danger); }
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
+.fa-spin { animation: fa-spin 1s infinite linear; }
+@keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* Mobile */
 @media (max-width: 768px) {
@@ -212,74 +231,6 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
     .nav-btn i { font-size: 1.4rem; margin: 0; } .nav-btn span { display: none; }
     .controls-grid { grid-template-columns: 1fr; gap: 10px; }
     .balance-amount { font-size: 2.5rem; }
-}
-
-/* Add this at the bottom of your CSS */
-.fa-spin {
-    animation: fa-spin 1s infinite linear;
-}
-@keyframes fa-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* --- RECORDS SECTION --- */
-.records-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.record-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start; /* Align top in case name is long */
-    transition: 0.3s ease;
-}
-
-.record-card:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--accent);
-}
-
-.r-info h3 {
-    margin: 0 0 5px 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: white;
-}
-
-.privacy-text {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    font-style: italic;
-    opacity: 0.7;
-}
-
-.violation-badge {
-    background: rgba(239, 68, 68, 0.15); /* Red Tint */
-    color: var(--danger);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    text-align: center;
-}
-
-/* Make cards look good on mobile */
-@media (max-width: 768px) {
-    .record-card {
-        flex-direction: column;
-        gap: 15px;
-    }
-    .violation-badge {
-        width: 100%;
-    }
+    .record-card { flex-direction: column; gap: 15px; }
+    .violation-badge { width: 100%; text-align: center; }
 }
