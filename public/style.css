@@ -1,14 +1,14 @@
 :root {
-    --bg-dark: #121418; /* Matte Dark Blue-Grey */
+    --bg-dark: #121418; /* Deep Matte Blue-Grey */
     --text-main: #ffffff;
-    --text-muted: #8b9bb4; /* Blue-tinted grey */
+    --text-muted: #94a3b8;
     
-    /* PROFESSIONAL BLUE THEME (No Neon) */
+    /* PROFESSIONAL BLUE THEME */
     --accent: #3b82f6; /* Solid Royal Blue */
-    --glass-bg: #1e232e; /* Solid semi-dark background, less transparency */
-    --glass-border: #2d3748; /* Solid border color */
+    --glass-bg: #1e232e; /* Solid semi-dark background */
+    --glass-border: #2d3748; 
     
-    /* STATUS COLORS (Pastel/Matte) */
+    /* STATUS COLORS */
     --danger: #ef4444;
     --success: #10b981;
 }
@@ -19,7 +19,7 @@ body.theme-pink {
     --glass-bg: #2d1e25;
 }
 
-/* --- SCROLLBAR --- */
+/* --- SCROLLBAR STABILITY --- */
 html { scrollbar-gutter: stable; }
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
@@ -35,25 +35,36 @@ body {
     color: var(--text-main);
     height: 100vh;
     overflow-x: hidden;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.5s ease;
 }
 
-/* Background Blob - Subtle Wash, No Glow */
+/* --- ALIVE BACKGROUND (The Fix) --- */
 .gradient-blob {
     position: fixed;
-    top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.08) 0%, var(--bg-dark) 60%);
+    top: -50%; 
+    left: -50%; 
+    width: 200%; 
+    height: 200%;
+    /* Asymmetric Gradient: This makes the rotation visible */
+    background: radial-gradient(circle at 60% 40%, rgba(59, 130, 246, 0.25) 0%, rgba(18, 20, 24, 0) 45%);
     z-index: -1;
-    animation: rotateBlob 30s infinite linear;
+    animation: rotateBlob 25s infinite linear;
+    transition: background 0.5s ease;
 }
+
+/* Pink Theme Background */
 body.theme-pink .gradient-blob {
-    background: radial-gradient(circle at center, rgba(236, 72, 153, 0.08) 0%, var(--bg-dark) 60%);
+    background: radial-gradient(circle at 60% 40%, rgba(236, 72, 153, 0.25) 0%, rgba(18, 20, 24, 0) 45%);
 }
-@keyframes rotateBlob { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+@keyframes rotateBlob { 
+    from { transform: rotate(0deg); } 
+    to { transform: rotate(360deg); } 
+}
 
 /* --- GLOBAL TRANSITIONS --- */
 button, input, select, .glass-card, h2 i, .nav-btn, .action-btn {
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 /* --- GLOBAL ADMIN BUTTON --- */
@@ -75,7 +86,7 @@ button, input, select, .glass-card, h2 i, .nav-btn, .action-btn {
 /* --- NAVIGATION --- */
 nav.glass-nav {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    background: #1f2937; /* Solid dark bar */
+    background: #1f2937; 
     padding: 6px; border-radius: 50px;
     border: 1px solid var(--glass-border);
     display: flex; gap: 5px; z-index: 100;
@@ -93,7 +104,7 @@ nav.glass-nav {
 
 /* --- SECTIONS --- */
 .page-section { display: none; min-height: 100vh; padding-top: 100px; }
-.active-section { display: block; animation: fadeIn 0.3s ease; }
+.active-section { display: block; animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 #home { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
@@ -105,7 +116,7 @@ nav.glass-nav {
 .glass-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    border-radius: 16px; /* Reduced radius */
+    border-radius: 16px;
     padding: 25px; max-width: 800px; margin: 0 auto; width: 95%;
 }
 
@@ -132,13 +143,13 @@ nav.glass-nav {
 .income { color: var(--success) !important; }
 .expense { color: var(--danger) !important; }
 
-/* Delete Button (Flat Red Circle) */
+/* Delete Button (Red) */
 .t-delete-btn {
     background: #3a1515;
     color: var(--danger);
     border: 1px solid var(--danger);
     width: 28px; height: 28px;
-    border-radius: 6px; /* Squircle */
+    border-radius: 6px; 
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; margin-left: 15px; font-size: 0.8rem;
 }
