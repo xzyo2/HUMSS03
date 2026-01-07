@@ -1,5 +1,5 @@
 :root {
-    --bg-dark: #0a0a12; /* Darker, slightly blue-tinted bg */
+    --bg-dark: #0a0a12;
     --text-main: #ffffff;
     --text-muted: #a0a0b0;
     
@@ -10,7 +10,7 @@
     --glass-bg: rgba(20, 30, 40, 0.6);
     --glass-border: rgba(255, 255, 255, 0.1);
     
-    /* FIXED STATUS COLORS (Won't change with theme) */
+    /* STATUS COLORS */
     --danger: #ff1744;
     --success: #00e676;
 }
@@ -19,8 +19,17 @@
 body.theme-pink {
     --accent: #ff4081;
     --accent-glow: rgba(255, 64, 129, 0.4);
-    --glass-bg: rgba(40, 20, 30, 0.6); /* Slight pink tint in glass */
+    --glass-bg: rgba(40, 20, 30, 0.6);
 }
+
+/* --- SCROLLBAR STABILITY FIX --- */
+html {
+    scrollbar-gutter: stable; /* Prevents layout shift when scrollbar appears */
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 * { box-sizing: border-box; }
 
@@ -51,9 +60,9 @@ body.theme-pink .gradient-blob {
 }
 @keyframes rotateBlob { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* --- GLOBAL ELEMENTS (With Transitions) --- */
-button, input, select, .glass-card, h2 i, .nav-btn {
-    transition: all 0.5s ease; /* Ensures color changes are smooth */
+/* --- GLOBAL TRANSITIONS --- */
+button, input, select, .glass-card, h2 i, .nav-btn, .action-btn {
+    transition: all 0.5s ease;
 }
 
 /* --- GLOBAL ADMIN BUTTON --- */
@@ -153,6 +162,7 @@ nav.glass-nav {
 .balance-amount { font-size: 3.5rem; font-weight: 700; color: white; margin: 5px 0; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
 .transaction-list { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
 .transaction-item {
+    position: relative;
     display: flex; justify-content: space-between; align-items: center;
     background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px;
     border: 1px solid transparent; transition: 0.2s;
@@ -163,6 +173,18 @@ nav.glass-nav {
 .t-amount { font-weight: 600; font-size: 1rem; }
 .income { color: var(--success) !important; text-shadow: 0 0 10px rgba(0, 230, 118, 0.3); }
 .expense { color: var(--danger) !important; text-shadow: 0 0 10px rgba(255, 23, 68, 0.3); }
+
+/* Funds Delete Button (The small X) */
+.t-delete-btn {
+    background: rgba(255, 23, 68, 0.1);
+    color: var(--danger);
+    border: none;
+    width: 25px; height: 25px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; margin-left: 15px; font-size: 0.8rem; transition: 0.2s;
+}
+.t-delete-btn:hover { background: var(--danger); color: white; transform: scale(1.1); }
 
 .load-more-btn { width: 100%; padding: 12px; margin-top: 20px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); border-radius: 8px; cursor: pointer; }
 .load-more-btn:hover { border-color: var(--accent); color: var(--accent); }
