@@ -13,7 +13,6 @@ export default async function handler(req, res) {
     const TREASURER_PASS = process.env.TREASURER_PASSWORD;
 
     try {
-        // GET: Fetch Transactions
         if (req.method === 'GET') {
             const page = parseInt(req.query.page) || 1;
             const limit = 15;
@@ -33,21 +32,27 @@ export default async function handler(req, res) {
             return res.status(200).json({ transactions: rows, total: total });
         }
 
-        // POST: Login OR Save Transaction
         if (req.method === 'POST') {
-            const { action, title, amount, type, date, password } = req.body;
+            const { action, title, amount, type, date, password, id } = req.body;
 
-            // 1. Check Password
+            // 1. Security Check
             if (password !== TREASURER_PASS) {
                 return res.status(401).json({ error: 'Unauthorized' });
             }
 
-            // 2. Handle Login Check (Don't save anything)
+            // 2. Login Check
             if (action === 'login') {
                 return res.status(200).json({ success: true });
             }
 
-            // 3. Save Transaction
+            // 3. Delete Transaction (New)
+            if (action === 'delete') {
+                if (!id) return res.status(400).json({ error: 'ID required' });
+                await pool.execute('DELETE FROM fund_transactions WHERE id = ?', [id]);
+                return res.status(200).json({ message: 'Deleted' });
+            }
+
+            // 4. Save Transaction
             if (title && amount) {
                 await pool.execute(
                     'INSERT INTO fund_transactions (title, amount, type, date) VALUES (?, ?, ?, ?)',
