@@ -46,7 +46,7 @@ const BIRTHDAY_DATA = [
     { name: "Terrible, Gabriel", date: "12-07" }
 ];
 
-const phrases = ["Best section known to man", "Worst section known to man"];
+const phrases = ["Best section known to man", "Worst section known to man", "wow"];
 let phraseIndex = 0, charIndex = 0, isDeleting = false;
 
 
@@ -782,4 +782,5 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
+
 
