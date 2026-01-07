@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>03 Officers | Section Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -17,11 +17,21 @@
     </button>
 
     <nav class="glass-nav">
-        <button class="nav-btn active" onclick="showSection('home')"><i class="fas fa-home"></i> <span>Home</span></button>
-        <button class="nav-btn" onclick="showSection('attendance')"><i class="fas fa-book"></i> <span>Attendance</span></button>
-        <button class="nav-btn" onclick="showSection('funds')"><i class="fas fa-wallet"></i> <span>Funds</span></button>
-        <button class="nav-btn" onclick="showSection('records')"><i class="fas fa-folder-open"></i> <span>Records</span></button>
-        <button class="nav-btn" onclick="showSection('birthdays')"><i class="fas fa-birthday-cake"></i> <span>Birthdays</span></button>
+        <button class="nav-btn active" onclick="showSection('home')">
+            <i class="fas fa-home"></i> <span>Home</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('attendance')">
+            <i class="fas fa-book"></i> <span>Attendance</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('funds')">
+            <i class="fas fa-wallet"></i> <span>Funds</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('records')">
+            <i class="fas fa-folder-open"></i> <span>Records</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('birthdays')">
+            <i class="fas fa-birthday-cake"></i> <span>Birthdays</span>
+        </button>
     </nav>
 
     <section id="home" class="page-section active-section">
@@ -37,6 +47,7 @@
         <div class="glass-card">
             <div class="header-row">
                 <h2><i class="fas fa-book"></i> Attendance</h2>
+                
                 <button id="attendanceAdminActionBtn" class="action-btn-small" onclick="openAttendanceEditor()" style="display:none;">
                     <i class="fas fa-edit"></i> Create / Edit
                 </button>
@@ -44,17 +55,28 @@
             
             <div class="controls-grid">
                 <div class="input-group">
+                    <label>Select Date:</label>
                     <input type="date" id="viewDate" onchange="loadAttendance()">
                 </div>
+                
                 <div class="input-group">
-                    <input type="text" id="searchBar" placeholder="Search..." onkeyup="filterAttendance()">
+                    <label>Search Name:</label>
+                    <div class="search-wrapper">
+                        <input type="text" id="searchBar" placeholder="Filter student..." onkeyup="filterAttendance()">
+                    </div>
                 </div>
             </div>
 
             <div class="table-wrapper">
                 <table>
-                    <thead><tr><th>Name</th><th>Status</th></tr></thead>
-                    <tbody id="attendanceTableBody"></tbody>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody">
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -64,9 +86,16 @@
         <div class="glass-card">
             <div class="header-row">
                 <h2><i class="fas fa-wallet"></i> Class Funds</h2>
-                <button id="fundsAdminActionBtn" class="action-btn-small" onclick="openFundsEditor()" style="display:none;">
-                    <i class="fas fa-plus"></i> New Transaction
-                </button>
+                
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="action-btn-small" onclick="refreshFunds()" title="Refresh Data" style="background: transparent; border: 1px solid var(--glass-border); padding: 8px 12px;">
+                        <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                    </button>
+
+                    <button id="fundsAdminActionBtn" class="action-btn-small" onclick="openFundsEditor()" style="display:none;">
+                        <i class="fas fa-plus"></i> New
+                    </button>
+                </div>
             </div>
 
             <div class="funds-hero">
@@ -81,10 +110,21 @@
         </div>
     </section>
 
-    <section id="records" class="page-section"><div class="glass-card"><h2>Records Coming Soon</h2></div></section>
-    <section id="birthdays" class="page-section"><div class="glass-card"><h2>Birthdays Coming Soon</h2></div></section>
+    <section id="records" class="page-section">
+        <div class="glass-card">
+            <div class="header-row"><h2><i class="fas fa-folder-open"></i> Records</h2></div>
+            <p style="text-align: center; color: #888;">Coming Soon</p>
+        </div>
+    </section>
 
-<div id="adminModal" class="modal">
+    <section id="birthdays" class="page-section">
+        <div class="glass-card">
+            <div class="header-row"><h2><i class="fas fa-birthday-cake"></i> Birthdays</h2></div>
+            <p style="text-align: center; color: #888;">Coming Soon</p>
+        </div>
+    </section>
+
+    <div id="adminModal" class="modal">
         <div class="modal-glass">
             <span class="close" onclick="closeAdminModal()">&times;</span>
             
@@ -93,7 +133,7 @@
                 <input type="text" id="adminUser" placeholder="Username" style="margin-bottom:10px;">
                 <input type="password" id="adminPass" placeholder="Password">
                 <button class="action-btn" onclick="verifyAdmin()">Unlock</button>
-                <p id="loginError" class="error-text" style="color:var(--danger); margin-top:10px;"></p>
+                <p id="loginError" class="error-text" style="color:var(--danger); margin-top:10px; font-size: 0.9rem;"></p>
             </div>
 
             <div id="logoutView" style="display:none; text-align: center;">
@@ -105,12 +145,17 @@
 
             <div id="dashboardView" style="display:none;">
                 <h3>Manage Attendance</h3>
+                <p style="margin-bottom: 5px; color:#888; font-size: 0.85rem;">Editing Date:</p>
                 <input type="date" id="adminDate" onchange="syncCheckboxesWithDate()" style="margin-bottom:15px;">
+                
                 <input type="text" id="modalSearch" placeholder="Find student..." onkeyup="filterModalNames()">
-                <div class="student-checklist" id="studentChecklist" style="margin-top:10px; max-height:200px; overflow-y:auto;"></div>
+                
+                <div class="student-checklist" id="studentChecklist" style="margin-top:10px; max-height:250px; overflow-y:auto; border: 1px solid var(--glass-border); padding: 10px; border-radius: 8px;">
+                    </div>
+                
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button id="saveBtn" class="action-btn" style="flex: 2;" onclick="submitAttendance()">Save Records</button>
-                    <button class="delete-icon-btn-large" style="flex: 1;" onclick="deleteDateRecords()"><i class="fas fa-trash"></i></button>
+                    <button class="delete-icon-btn-large" style="flex: 1;" onclick="deleteDateRecords()" title="Delete Date"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
 
@@ -142,7 +187,7 @@
     </div>
 
     <div id="toast-container"></div>
+
     <script src="script.js"></script>
 </body>
 </html>
-
