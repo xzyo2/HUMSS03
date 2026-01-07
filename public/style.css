@@ -213,3 +213,12 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
     .controls-grid { grid-template-columns: 1fr; gap: 10px; }
     .balance-amount { font-size: 2.5rem; }
 }
+
+/* Add this at the bottom of your CSS */
+.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
