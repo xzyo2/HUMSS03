@@ -4,13 +4,11 @@ const CLASS_LIST = [
     "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
 ];
 
-// --- Typewriter Configuration ---
+// --- Typewriter Config ---
 const phrases = ["Best section known to man", "Worst section known to man"];
-let phraseIndex = 0;
-let charIndex = 0;
-let isDeleting = false;
+let phraseIndex = 0, charIndex = 0, isDeleting = false;
 
-// --- Global State ---
+// --- State ---
 let cachedAttendanceData = []; 
 let fundsPage = 1;
 let currentUserRole = null; // 'secretary' or 'treasurer'
@@ -18,24 +16,19 @@ let sessionPassword = "";
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Start Typewriter
     typeWriter();
 
-    // 2. Set Default Dates
+    // Default Dates
     const today = new Date().toISOString().split('T')[0];
-    const dateInput = document.getElementById('viewDate');
-    const adminDateInput = document.getElementById('adminDate');
-    const fundDateInput = document.getElementById('fundDate');
-    
-    dateInput.value = START_DATE; 
-    adminDateInput.value = START_DATE;
-    if(fundDateInput) fundDateInput.value = today;
+    document.getElementById('viewDate').value = START_DATE; 
+    document.getElementById('adminDate').value = START_DATE;
+    if(document.getElementById('fundDate')) document.getElementById('fundDate').value = today;
 
-    // 3. Load Data based on current URL hash
+    // Load Hash
     if(window.location.hash === '#attendance') loadAttendance();
     if(window.location.hash === '#funds') loadFunds();
     
-    // 4. Pre-load checklist
+    // Pre-load checklist
     loadStudentChecklist(); 
 });
 
@@ -51,39 +44,31 @@ function showSection(id) {
     if(id === 'home') target.style.display = 'flex';
     target.classList.add('active-section');
     
-    // Set Active Button
+    // Highlight Button
+    const map = { 'home': 0, 'attendance': 1, 'funds': 2, 'records': 3, 'birthdays': 4 };
     const navButtons = document.querySelectorAll('.nav-btn');
-    if(id === 'home') navButtons[0].classList.add('active');
-    if(id === 'attendance') {
-        navButtons[1].classList.add('active');
-        loadAttendance();
-    }
-    if(id === 'funds') {
-        navButtons[2].classList.add('active');
-        fundsPage = 1;
-        loadFunds();
-    }
-    if(id === 'records') navButtons[3].classList.add('active');
-    if(id === 'birthdays') navButtons[4].classList.add('active');
+    if(navButtons[map[id]]) navButtons[map[id]].classList.add('active');
+
+    // Section Logic
+    if(id === 'attendance') loadAttendance();
+    if(id === 'funds') { fundsPage = 1; loadFunds(); }
 }
 
-// ================= ADMIN SYSTEM (MULTI-ROLE) =================
+// ================= ADMIN SYSTEM =================
 
 function toggleAdminModal() {
     const modal = document.getElementById('adminModal');
     
-    // Check if modal is currently closed
     if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'block';
-        
         if (sessionPassword) {
-            // IF LOGGED IN: Show Logout View
+            // Logged In View
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('logoutView').style.display = 'block';
             document.getElementById('dashboardView').style.display = 'none';
             document.getElementById('fundsDashboardView').style.display = 'none';
         } else {
-            // IF LOGGED OUT: Show Login View
+            // Logged Out View
             document.getElementById('loginView').style.display = 'block';
             document.getElementById('logoutView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'none';
@@ -94,30 +79,31 @@ function toggleAdminModal() {
     }
 }
 
-function closeAdminModal() {
-    document.getElementById('adminModal').style.display = 'none';
-}
-
-// ... (Previous parts of script.js remain the same) ...
+function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
 
 function logout() {
     sessionPassword = "";
     currentUserRole = null;
     
-    // 1. Reset Theme to Default (Blue)
+    // 1. Reset Theme (Default Blue)
     document.body.classList.remove('theme-pink');
     
-    // 2. Reset UI Indicators
+    // 2. Reset UI
     const globalBtn = document.getElementById('globalAdminBtn');
     globalBtn.classList.remove('logged-in');
     globalBtn.innerHTML = '<i class="fas fa-lock"></i>';
     
-    // 3. Hide all admin buttons
     document.getElementById('attendanceAdminActionBtn').style.display = 'none';
     document.getElementById('fundsAdminActionBtn').style.display = 'none';
     
     closeAdminModal();
     showToast("Logged out successfully", "success");
+
+    // 3. Refresh Funds if active (to hide delete buttons)
+    if (window.location.hash === '#funds' || document.getElementById('funds').style.display === 'block') {
+        fundsPage = 1;
+        loadFunds(); 
+    }
 }
 
 async function verifyAdmin() {
@@ -126,20 +112,11 @@ async function verifyAdmin() {
     const err = document.getElementById('loginError');
     const btn = document.querySelector('#loginView .action-btn');
 
-    let endpoint = '';
-    let role = '';
+    let endpoint = '', role = '';
     
-    // Determine Role
-    if (user === 'secretary') { 
-        endpoint = '/api/attendance'; 
-        role = 'secretary'; 
-    } else if (user === 'Audit') { 
-        endpoint = '/api/funds'; 
-        role = 'treasurer'; 
-    } else { 
-        err.textContent = "Unknown Username"; 
-        return; 
-    }
+    if (user === 'secretary') { endpoint = '/api/attendance'; role = 'secretary'; }
+    else if (user === 'Audit') { endpoint = '/api/funds'; role = 'treasurer'; }
+    else { err.textContent = "Unknown Username"; return; }
 
     btn.textContent = "Checking...";
     err.textContent = "";
@@ -156,15 +133,11 @@ async function verifyAdmin() {
             currentUserRole = role;
             
             closeAdminModal();
-            
-            // UI Updates
             const globalBtn = document.getElementById('globalAdminBtn');
             globalBtn.classList.add('logged-in');
             globalBtn.innerHTML = '<i class="fas fa-unlock"></i>';
 
-            // THEME LOGIC:
-            // If Secretary -> Pink Theme
-            // If Treasurer -> Default Blue (Remove Pink if present)
+            // THEME LOGIC
             if (role === 'secretary') {
                 document.body.classList.add('theme-pink');
                 document.getElementById('attendanceAdminActionBtn').style.display = 'block';
@@ -173,15 +146,19 @@ async function verifyAdmin() {
                 document.getElementById('fundsAdminActionBtn').style.display = 'block';
             }
 
+            // Refresh Funds if active (to show delete buttons)
+            if (window.location.hash === '#funds' || document.getElementById('funds').style.display === 'block') {
+                fundsPage = 1;
+                loadFunds(); 
+            }
+
             showToast(`Welcome, ${user}`, "success");
-            
             document.getElementById('adminUser').value = '';
             document.getElementById('adminPass').value = '';
         } else {
             err.textContent = "Wrong Password";
         }
     } catch (e) {
-        console.error(e);
         err.textContent = "Connection Error";
     } finally {
         btn.textContent = "Unlock";
@@ -202,7 +179,6 @@ async function loadFunds(append = false) {
         const res = await fetch(`/api/funds?page=${fundsPage}`);
         const data = await res.json();
         
-        // 1. Animate Total Balance (Only on first load)
         if(!append) animateValue("totalFunds", 0, parseFloat(data.total), 1500);
 
         const container = document.getElementById('transactionList');
@@ -222,20 +198,28 @@ async function loadFunds(append = false) {
             const sign = t.type === 'income' ? '+' : '-';
             const colorClass = t.type === 'income' ? 'income' : 'expense';
             
+            // SHOW DELETE BUTTON ONLY IF AUDIT
+            let deleteBtnHtml = '';
+            if (currentUserRole === 'treasurer') {
+                deleteBtnHtml = `<button class="t-delete-btn" onclick="deleteFundTransaction(${t.id})" title="Delete Transaction"><i class="fas fa-times"></i></button>`;
+            }
+
             const html = `
                 <div class="transaction-item">
                     <div class="t-info">
                         <h4>${t.title}</h4>
                         <span>${date}</span>
                     </div>
-                    <div class="t-amount ${colorClass}">${sign} ₱${parseFloat(t.amount).toFixed(2)}</div>
+                    <div style="display:flex; align-items:center;">
+                        <div class="t-amount ${colorClass}">${sign} ₱${parseFloat(t.amount).toFixed(2)}</div>
+                        ${deleteBtnHtml}
+                    </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
         });
 
     } catch (e) {
-        console.error(e);
         if(!append) document.getElementById('transactionList').innerHTML = '<div style="text-align:center; padding:20px; color:var(--danger)">Error loading funds.</div>';
     }
 }
@@ -255,7 +239,6 @@ async function submitTransaction() {
     const date = document.getElementById('fundDate').value;
 
     if(!title || !amount) { showToast("Please fill all fields", "error"); return; }
-
     const btn = document.getElementById('saveFundBtn');
     btn.textContent = "Saving...";
 
@@ -263,21 +246,14 @@ async function submitTransaction() {
         const res = await fetch('/api/funds', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                title, amount, type, date,
-                password: sessionPassword
-            })
+            body: JSON.stringify({ title, amount, type, date, password: sessionPassword })
         });
 
         if(res.ok) {
             showToast("Transaction Saved", "success");
             closeAdminModal();
-            
-            // "Live" Update
             fundsPage = 1;
             loadFunds(false); 
-            
-            // Clear inputs
             document.getElementById('fundTitle').value = '';
             document.getElementById('fundAmount').value = '';
         } else {
@@ -290,17 +266,23 @@ async function submitTransaction() {
     }
 }
 
-function animateValue(id, start, end, duration) {
-    const obj = document.getElementById(id);
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const currentVal = (progress * (end - start) + start).toFixed(2);
-        obj.innerHTML = currentVal;
-        if (progress < 1) window.requestAnimationFrame(step);
-    };
-    window.requestAnimationFrame(step);
+async function deleteFundTransaction(id) {
+    if(!confirm("Are you sure you want to delete this transaction?")) return;
+    try {
+        const res = await fetch('/api/funds', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'delete', id: id, password: sessionPassword })
+        });
+        if(res.ok) {
+            showToast("Transaction deleted", "success");
+            loadFunds(false); 
+        } else {
+            showToast("Failed to delete", "error");
+        }
+    } catch(e) {
+        showToast("Server Error", "error");
+    }
 }
 
 // ================= ATTENDANCE LOGIC =================
@@ -344,38 +326,26 @@ function openAttendanceEditor() {
     document.getElementById('fundsDashboardView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
     
-    // Force reload checklist
-    loadStudentChecklist();
+    loadStudentChecklist(); // Force reload
 
     const viewDate = document.getElementById('viewDate').value;
-    const adminDateInput = document.getElementById('adminDate');
-    
-    if (viewDate) {
-        adminDateInput.value = viewDate;
-    }
+    if (viewDate) document.getElementById('adminDate').value = viewDate;
     
     syncCheckboxesWithDate();
-    validateSchoolDay(adminDateInput);
 }
 
 function syncCheckboxesWithDate() {
     const targetDate = document.getElementById('adminDate').value;
-    validateSchoolDay(document.getElementById('adminDate'));
-    
     const checkboxes = document.querySelectorAll('.absent-checkbox');
     checkboxes.forEach(box => box.checked = false);
 
     if (!targetDate || cachedAttendanceData.length === 0) return;
 
     const recordsForDate = cachedAttendanceData.filter(rec => rec.date.startsWith(targetDate));
-
     if (recordsForDate.length > 0) {
         checkboxes.forEach(box => {
-            const studentName = box.value;
-            const record = recordsForDate.find(r => r.student_name === studentName);
-            if (record && record.status === 'Absent') {
-                box.checked = true;
-            }
+            const record = recordsForDate.find(r => r.student_name === box.value);
+            if (record && record.status === 'Absent') box.checked = true;
         });
         showToast("Loaded existing records for editing", "success");
     }
@@ -385,8 +355,7 @@ function loadStudentChecklist() {
     const container = document.getElementById('studentChecklist');
     container.innerHTML = ''; 
     CLASS_LIST.forEach(name => {
-        const itemHtml = `<div class="checklist-item"><label><input type="checkbox" value="${name}" class="absent-checkbox"> ${name}</label></div>`;
-        container.insertAdjacentHTML('beforeend', itemHtml);
+        container.insertAdjacentHTML('beforeend', `<div class="checklist-item"><label><input type="checkbox" value="${name}" class="absent-checkbox"> ${name}</label></div>`);
     });
 }
 
@@ -401,22 +370,14 @@ async function submitAttendance() {
     const checkboxes = document.querySelectorAll('.absent-checkbox');
     const records = [];
     checkboxes.forEach(box => {
-        records.push({
-            name: box.value,
-            date: date,
-            status: box.checked ? 'Absent' : 'Present'
-        });
+        records.push({ name: box.value, date: date, status: box.checked ? 'Absent' : 'Present' });
     });
 
     try {
         const res = await fetch('/api/attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'save', 
-                records: records, 
-                password: sessionPassword 
-            })
+            body: JSON.stringify({ action: 'save', records: records, password: sessionPassword })
         });
 
         if (res.ok) {
@@ -438,8 +399,7 @@ async function submitAttendance() {
 async function deleteDateRecords() {
     const date = document.getElementById('adminDate').value;
     if(!date) { showToast("Select a date to delete", "error"); return; }
-
-    if(!confirm(`Are you sure you want to delete ALL records for ${date}?`)) return;
+    if(!confirm(`Delete ALL records for ${date}?`)) return;
 
     try {
         const res = await fetch('/api/attendance', {
@@ -447,7 +407,6 @@ async function deleteDateRecords() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'delete', date: date, password: sessionPassword })
         });
-
         if (res.ok) {
             showToast(`Deleted records for ${date}`, "success");
             closeAdminModal();
@@ -460,40 +419,33 @@ async function deleteDateRecords() {
     }
 }
 
-// --- Helper Functions ---
-function validateSchoolDay(input) {
-    const date = new Date(input.value);
-    const day = date.getDay(); 
-    // School is usually Mon(1) to Fri(5), but user prompt implied Mon-Wed warnings?
-    // Keeping logic mostly standard for now.
-    // const warning = document.getElementById('dateWarning');
-    // if (day === 0 || day > 5) warning.textContent = "Weekend Selected";
-    // else warning.textContent = "";
-}
-
+// --- Helpers ---
 function filterAttendance() {
     const input = document.getElementById('searchBar').value.toLowerCase();
     const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
-    for (let row of rows) {
-        const txt = row.innerText;
-        row.style.display = txt.toLowerCase().indexOf(input) > -1 ? "" : "none";
-    }
+    for (let row of rows) row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
 }
 function filterModalNames() {
     const filter = document.getElementById('modalSearch').value.toLowerCase();
     const items = document.getElementsByClassName('checklist-item');
-    for (let item of items) {
-        item.style.display = item.innerText.toLowerCase().includes(filter) ? "flex" : "none";
-    }
+    for (let item of items) item.style.display = item.innerText.toLowerCase().includes(filter) ? "flex" : "none";
 }
-
+function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = (progress * (end - start) + start).toFixed(2);
+        if (progress < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+}
 function typeWriter() {
     const target = document.querySelector('.typewriter');
     if (!target) return;
-
     const currentPhrase = phrases[phraseIndex];
     let typeSpeed = 100;
-
     if (isDeleting) {
         target.textContent = currentPhrase.substring(0, charIndex - 1);
         charIndex--;
@@ -502,19 +454,10 @@ function typeWriter() {
         target.textContent = currentPhrase.substring(0, charIndex + 1);
         charIndex++;
     }
-
-    if (!isDeleting && charIndex === currentPhrase.length) {
-        isDeleting = true;
-        typeSpeed = 2000;
-    } else if (isDeleting && charIndex === 0) {
-        isDeleting = false;
-        phraseIndex = (phraseIndex + 1) % phrases.length;
-        typeSpeed = 500;
-    }
-
+    if (!isDeleting && charIndex === currentPhrase.length) { isDeleting = true; typeSpeed = 2000; } 
+    else if (isDeleting && charIndex === 0) { isDeleting = false; phraseIndex = (phraseIndex + 1) % phrases.length; typeSpeed = 500; }
     setTimeout(typeWriter, typeSpeed);
 }
-
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -524,4 +467,3 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
-
