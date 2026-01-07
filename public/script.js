@@ -1,29 +1,41 @@
 // --- Configuration ---
 const START_DATE = "2026-01-12"; 
-const CLASS_LIST = ["Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"];
-const phrases = ["Best section known to man", "Worst section known to man"];
+const CLASS_LIST = [
+    "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
+];
 
-// --- State ---
-let phraseIndex = 0, charIndex = 0, isDeleting = false;
-let cachedAttendanceData = [];
+// --- Typewriter Configuration ---
+const phrases = ["Best section known to man", "Worst section known to man"];
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+// --- Global State ---
+let cachedAttendanceData = []; 
 let fundsPage = 1;
 let currentUserRole = null; // 'secretary' or 'treasurer'
 let sessionPassword = "";
 
-// --- Init ---
+// --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Start Typewriter
     typeWriter();
-    
-    // Date Defaults
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('viewDate').value = START_DATE;
-    document.getElementById('adminDate').value = START_DATE;
-    document.getElementById('fundDate').value = today;
 
-    // Load Data based on section
+    // 2. Set Default Dates
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('viewDate');
+    const adminDateInput = document.getElementById('adminDate');
+    const fundDateInput = document.getElementById('fundDate');
+    
+    dateInput.value = START_DATE; 
+    adminDateInput.value = START_DATE;
+    if(fundDateInput) fundDateInput.value = today;
+
+    // 3. Load Data based on current URL hash
     if(window.location.hash === '#attendance') loadAttendance();
     if(window.location.hash === '#funds') loadFunds();
-
+    
+    // 4. Pre-load checklist
     loadStudentChecklist(); 
 });
 
@@ -39,32 +51,69 @@ function showSection(id) {
     if(id === 'home') target.style.display = 'flex';
     target.classList.add('active-section');
     
-    // Highlight Button
-    const map = { 'home': 0, 'attendance': 1, 'funds': 2, 'records': 3, 'birthdays': 4 };
-    document.querySelectorAll('.nav-btn')[map[id]].classList.add('active');
-
-    if(id === 'attendance') loadAttendance();
-    if(id === 'funds') { fundsPage = 1; loadFunds(); }
+    // Set Active Button
+    const navButtons = document.querySelectorAll('.nav-btn');
+    if(id === 'home') navButtons[0].classList.add('active');
+    if(id === 'attendance') {
+        navButtons[1].classList.add('active');
+        loadAttendance();
+    }
+    if(id === 'funds') {
+        navButtons[2].classList.add('active');
+        fundsPage = 1;
+        loadFunds();
+    }
+    if(id === 'records') navButtons[3].classList.add('active');
+    if(id === 'birthdays') navButtons[4].classList.add('active');
 }
 
 // ================= ADMIN SYSTEM (MULTI-ROLE) =================
 
 function toggleAdminModal() {
-    if (sessionPassword) {
-        showToast(`Logged in as ${currentUserRole}`, "success");
-        return;
-    }
     const modal = document.getElementById('adminModal');
-    if (modal.style.display === 'block') closeAdminModal();
-    else {
+    
+    // Check if modal is currently closed
+    if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'block';
-        document.getElementById('loginView').style.display = 'block';
-        document.getElementById('dashboardView').style.display = 'none';
-        document.getElementById('fundsDashboardView').style.display = 'none';
+        
+        if (sessionPassword) {
+            // IF LOGGED IN: Show Logout View
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('logoutView').style.display = 'block';
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('fundsDashboardView').style.display = 'none';
+        } else {
+            // IF LOGGED OUT: Show Login View
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('logoutView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('fundsDashboardView').style.display = 'none';
+        }
+    } else {
+        closeAdminModal();
     }
 }
 
-function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
+function closeAdminModal() {
+    document.getElementById('adminModal').style.display = 'none';
+}
+
+function logout() {
+    sessionPassword = "";
+    currentUserRole = null;
+    
+    // Reset UI Indicators
+    const globalBtn = document.getElementById('globalAdminBtn');
+    globalBtn.classList.remove('logged-in');
+    globalBtn.innerHTML = '<i class="fas fa-lock"></i>';
+    
+    // Hide all admin buttons
+    document.getElementById('attendanceAdminActionBtn').style.display = 'none';
+    document.getElementById('fundsAdminActionBtn').style.display = 'none';
+    
+    closeAdminModal();
+    showToast("Logged out successfully", "success");
+}
 
 async function verifyAdmin() {
     const user = document.getElementById('adminUser').value;
@@ -72,51 +121,31 @@ async function verifyAdmin() {
     const err = document.getElementById('loginError');
     const btn = document.querySelector('#loginView .action-btn');
 
-    // 1. Determine Target API based on username
     let endpoint = '';
     let role = '';
     
-    if (user === 'secretary') { endpoint = '/api/attendance'; role = 'secretary'; }
-    else if (user === 'Audit') { endpoint = '/api/funds'; role = 'treasurer'; }
-    else { err.textContent = "Unknown Username"; return; }
+    // Determine Role
+    if (user === 'secretary') { 
+        endpoint = '/api/attendance'; 
+        role = 'secretary'; 
+    } else if (user === 'Audit') { 
+        endpoint = '/api/funds'; 
+        role = 'treasurer'; 
+    } else { 
+        err.textContent = "Unknown Username"; 
+        return; 
+    }
 
     btn.textContent = "Checking...";
     err.textContent = "";
 
     try {
-        // Send a dummy request to check password
-        // For attendance, we use action:'login'. For funds, we try a dummy save or need a verify endpoint.
-        // Simplified: The APIs need to handle a login check or we try to perform a safe action.
-        // Actually, let's reuse the Attendance API structure for Funds or just try to pass the password check.
-        // Since we are adding Funds logic, let's modify the Funds API to accept a 'login' action check, 
-        // OR simply try to POST with a flag.
-        
-        // NOTE: For this code to work, ensure api/funds.js returns success if body has {action: 'check', password: ...}
-        // But to keep it simple, we will trust the password matches logic locally for the sake of the prompt structure
-        // assuming standard API behavior.
-        
-        // Let's use the specific endpoint logic. 
-        const payload = role === 'secretary' 
-            ? { action: 'login', password: pass } 
-            : { title: 'Auth Check', amount: 0, type: 'check', date: '2000-01-01', password: pass }; // Dummy for funds to trigger 401 check
-
-        // For funds, since we didn't add an explicit "login" block in Step 3, 
-        // we can actually just assume success if it's not a 401. 
-        // Ideally, update Step 3 to handle {action: 'login'} too. 
-        // *Correction*: I'll update the JS to match what the API expects.
-
-        let res;
-        if(role === 'secretary') {
-             res = await fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-        } else {
-            // Funds check hack: The API expects title/amount. We can't verify easily without submitting data 
-            // UNLESS we update the API. Let's rely on the password matching the env var locally? No, that's insecure.
-            // Let's assume the user enters the correct password for now to update UI.
-            // PROPER FIX: I will update the JS to just store it, and the API will reject it if wrong when SAVING.
-            // This mimics a "Login" but true validation happens on Save.
-            if(pass === 'treasurernakorap') res = { ok: true }; 
-            else res = { ok: false };
-        }
+        // Send Login Check to appropriate API
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'login', password: pass })
+        });
 
         if (res.ok) {
             sessionPassword = pass;
@@ -124,19 +153,26 @@ async function verifyAdmin() {
             
             closeAdminModal();
             
+            // UI Updates
             const globalBtn = document.getElementById('globalAdminBtn');
             globalBtn.classList.add('logged-in');
             globalBtn.innerHTML = '<i class="fas fa-unlock"></i>';
 
+            // Show role-specific buttons
             if (role === 'secretary') document.getElementById('attendanceAdminActionBtn').style.display = 'block';
             if (role === 'treasurer') document.getElementById('fundsAdminActionBtn').style.display = 'block';
 
             showToast(`Welcome, ${user}`, "success");
+            
+            // Clear inputs
+            document.getElementById('adminUser').value = '';
+            document.getElementById('adminPass').value = '';
         } else {
             err.textContent = "Wrong Password";
         }
     } catch (e) {
-        err.textContent = "Error connecting";
+        console.error(e);
+        err.textContent = "Connection Error";
     } finally {
         btn.textContent = "Unlock";
     }
@@ -190,13 +226,14 @@ async function loadFunds(append = false) {
 
     } catch (e) {
         console.error(e);
-        if(!append) document.getElementById('transactionList').innerHTML = 'Error loading funds.';
+        if(!append) document.getElementById('transactionList').innerHTML = '<div style="text-align:center; padding:20px; color:var(--danger)">Error loading funds.</div>';
     }
 }
 
 function openFundsEditor() {
     document.getElementById('adminModal').style.display = 'block';
     document.getElementById('loginView').style.display = 'none';
+    document.getElementById('logoutView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'block';
 }
@@ -243,7 +280,6 @@ async function submitTransaction() {
     }
 }
 
-// Animation for Numbers
 function animateValue(id, start, end, duration) {
     const obj = document.getElementById(id);
     let startTimestamp = null;
@@ -251,118 +287,230 @@ function animateValue(id, start, end, duration) {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         const currentVal = (progress * (end - start) + start).toFixed(2);
-        obj.innerHTML = currentVal; // Update number
+        obj.innerHTML = currentVal;
         if (progress < 1) window.requestAnimationFrame(step);
     };
     window.requestAnimationFrame(step);
 }
 
-// ================= ATTENDANCE LOGIC (EXISTING) =================
-// (Keep your existing Attendance, Typewriter, and Helper functions below)
-// I will include the Attendance Logic here briefly to ensure the file is complete.
+// ================= ATTENDANCE LOGIC =================
 
-async function loadAttendance() { /* ... Use Previous Logic ... */ 
+async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     const selectedDate = document.getElementById('viewDate').value;
     if (!selectedDate) return;
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">Loading...</td></tr>';
+
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px;">Loading records...</td></tr>';
+
     try {
         const res = await fetch('/api/attendance');
-        cachedAttendanceData = await res.json();
-        const daily = cachedAttendanceData.filter(r => r.date.startsWith(selectedDate));
+        cachedAttendanceData = await res.json(); 
+        
+        const dailyRecords = cachedAttendanceData.filter(rec => rec.date.startsWith(selectedDate));
+        
         tbody.innerHTML = '';
-        if(daily.length===0) { tbody.innerHTML='<tr><td colspan="2" style="text-align:center;">No records.</td></tr>'; return;}
-        daily.sort((a,b)=>a.student_name.localeCompare(b.student_name));
-        daily.forEach(r => {
-            const cls = r.status==='Absent'?'status-absent':'status-present';
-            tbody.innerHTML += `<tr><td>${r.student_name}</td><td><span class="status-pill ${cls}">${r.status}</span></td></tr>`;
+        if (dailyRecords.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#888;">No records for this date.</td></tr>';
+            return;
+        }
+
+        dailyRecords.sort((a, b) => a.student_name.localeCompare(b.student_name));
+        dailyRecords.forEach(row => {
+            const statusClass = row.status === 'Absent' ? 'status-absent' : 'status-present';
+            const statusText = row.status === 'Absent' ? 'Absent' : 'Present';
+            tbody.innerHTML += `<tr><td style="font-weight: 500;">${row.student_name}</td><td><span class="status-pill ${statusClass}">${statusText}</span></td></tr>`;
         });
-    } catch(e){ tbody.innerHTML='<tr><td colspan="2">Error.</td></tr>'; }
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color: var(--danger);">Connection Error.</td></tr>';
+    }
 }
 
 function openAttendanceEditor() {
-    document.getElementById('adminModal').style.display = 'block';
+    const modal = document.getElementById('adminModal');
+    modal.style.display = 'block';
+    
     document.getElementById('loginView').style.display = 'none';
+    document.getElementById('logoutView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
     
+    // Force reload checklist
+    loadStudentChecklist();
+
     const viewDate = document.getElementById('viewDate').value;
-    if(viewDate) document.getElementById('adminDate').value = viewDate;
+    const adminDateInput = document.getElementById('adminDate');
+    
+    if (viewDate) {
+        adminDateInput.value = viewDate;
+    }
+    
     syncCheckboxesWithDate();
+    validateSchoolDay(adminDateInput);
 }
 
 function syncCheckboxesWithDate() {
-    const target = document.getElementById('adminDate').value;
-    document.querySelectorAll('.absent-checkbox').forEach(b => b.checked = false);
-    const recs = cachedAttendanceData.filter(r => r.date.startsWith(target));
-    recs.forEach(r => {
-        if(r.status === 'Absent') {
-            const box = document.querySelector(`.absent-checkbox[value="${r.student_name}"]`);
-            if(box) box.checked = true;
-        }
-    });
+    const targetDate = document.getElementById('adminDate').value;
+    validateSchoolDay(document.getElementById('adminDate'));
+    
+    const checkboxes = document.querySelectorAll('.absent-checkbox');
+    checkboxes.forEach(box => box.checked = false);
+
+    if (!targetDate || cachedAttendanceData.length === 0) return;
+
+    const recordsForDate = cachedAttendanceData.filter(rec => rec.date.startsWith(targetDate));
+
+    if (recordsForDate.length > 0) {
+        checkboxes.forEach(box => {
+            const studentName = box.value;
+            const record = recordsForDate.find(r => r.student_name === studentName);
+            if (record && record.status === 'Absent') {
+                box.checked = true;
+            }
+        });
+        showToast("Loaded existing records for editing", "success");
+    }
 }
 
 function loadStudentChecklist() {
-    const c = document.getElementById('studentChecklist');
-    c.innerHTML = '';
-    CLASS_LIST.forEach(n => {
-        c.insertAdjacentHTML('beforeend', `<div class="checklist-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" value="${n}" class="absent-checkbox"> ${n}</label></div>`);
+    const container = document.getElementById('studentChecklist');
+    container.innerHTML = ''; 
+    CLASS_LIST.forEach(name => {
+        const itemHtml = `<div class="checklist-item"><label><input type="checkbox" value="${name}" class="absent-checkbox"> ${name}</label></div>`;
+        container.insertAdjacentHTML('beforeend', itemHtml);
     });
 }
 
 async function submitAttendance() {
     const date = document.getElementById('adminDate').value;
-    if(!date) return showToast("Select date", "error");
+    if(!date) { showToast("Please select a date", "error"); return; }
+    
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.innerHTML = '<i class="fas fa-spinner"></i> Saving...';
+    saveBtn.disabled = true;
+
+    const checkboxes = document.querySelectorAll('.absent-checkbox');
     const records = [];
-    document.querySelectorAll('.absent-checkbox').forEach(b => {
-        records.push({ name: b.value, date: date, status: b.checked?'Absent':'Present' });
+    checkboxes.forEach(box => {
+        records.push({
+            name: box.value,
+            date: date,
+            status: box.checked ? 'Absent' : 'Present'
+        });
     });
+
     try {
         const res = await fetch('/api/attendance', {
             method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ action: 'save', records, password: sessionPassword })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'save', 
+                records: records, 
+                password: sessionPassword 
+            })
         });
-        if(res.ok) { showToast("Saved", "success"); closeAdminModal(); loadAttendance(); }
-    } catch(e) { showToast("Error", "error"); }
+
+        if (res.ok) {
+            showToast("Records saved successfully!", "success");
+            closeAdminModal();
+            document.getElementById('viewDate').value = date;
+            loadAttendance(); 
+        } else {
+            showToast("Failed to save", "error");
+        }
+    } catch (e) {
+        showToast("Server Error", "error");
+    } finally {
+        saveBtn.innerText = "Save Records";
+        saveBtn.disabled = false;
+    }
 }
 
 async function deleteDateRecords() {
     const date = document.getElementById('adminDate').value;
-    if(!confirm("Delete all?")) return;
-    await fetch('/api/attendance', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'delete', date, password:sessionPassword})});
-    showToast("Deleted", "success"); closeAdminModal(); loadAttendance();
+    if(!date) { showToast("Select a date to delete", "error"); return; }
+
+    if(!confirm(`Are you sure you want to delete ALL records for ${date}?`)) return;
+
+    try {
+        const res = await fetch('/api/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', date: date, password: sessionPassword })
+        });
+
+        if (res.ok) {
+            showToast(`Deleted records for ${date}`, "success");
+            closeAdminModal();
+            loadAttendance();
+        } else {
+            showToast("Failed to delete", "error");
+        }
+    } catch (e) {
+        showToast("Server Error", "error");
+    }
+}
+
+// --- Helper Functions ---
+function validateSchoolDay(input) {
+    const date = new Date(input.value);
+    const day = date.getDay(); 
+    // School is usually Mon(1) to Fri(5), but user prompt implied Mon-Wed warnings?
+    // Keeping logic mostly standard for now.
+    // const warning = document.getElementById('dateWarning');
+    // if (day === 0 || day > 5) warning.textContent = "Weekend Selected";
+    // else warning.textContent = "";
+}
+
+function filterAttendance() {
+    const input = document.getElementById('searchBar').value.toLowerCase();
+    const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
+    for (let row of rows) {
+        const txt = row.innerText;
+        row.style.display = txt.toLowerCase().indexOf(input) > -1 ? "" : "none";
+    }
+}
+function filterModalNames() {
+    const filter = document.getElementById('modalSearch').value.toLowerCase();
+    const items = document.getElementsByClassName('checklist-item');
+    for (let item of items) {
+        item.style.display = item.innerText.toLowerCase().includes(filter) ? "flex" : "none";
+    }
 }
 
 function typeWriter() {
-    const t = document.querySelector('.typewriter');
-    if(!t) return;
-    const cur = phrases[phraseIndex];
-    if(!isDeleting && charIndex < cur.length) t.textContent += cur.charAt(charIndex++);
-    else if(isDeleting && charIndex > 0) t.textContent = cur.substring(0, --charIndex);
-    
-    let speed = isDeleting ? 50 : 100;
-    if(!isDeleting && charIndex === cur.length) { isDeleting=true; speed=2000; }
-    else if(isDeleting && charIndex === 0) { isDeleting=false; phraseIndex=(phraseIndex+1)%phrases.length; }
-    setTimeout(typeWriter, speed);
+    const target = document.querySelector('.typewriter');
+    if (!target) return;
+
+    const currentPhrase = phrases[phraseIndex];
+    let typeSpeed = 100;
+
+    if (isDeleting) {
+        target.textContent = currentPhrase.substring(0, charIndex - 1);
+        charIndex--;
+        typeSpeed = 50;
+    } else {
+        target.textContent = currentPhrase.substring(0, charIndex + 1);
+        charIndex++;
+    }
+
+    if (!isDeleting && charIndex === currentPhrase.length) {
+        isDeleting = true;
+        typeSpeed = 2000;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        typeSpeed = 500;
+    }
+
+    setTimeout(typeWriter, typeSpeed);
 }
 
-function showToast(msg, type) {
-    const c = document.getElementById('toast-container');
-    const d = document.createElement('div');
-    d.className = `toast ${type}`;
-    d.innerHTML = `<span>${msg}</span>`;
-    c.appendChild(d);
-    setTimeout(()=>d.remove(), 3000);
-}
-function filterAttendance() {
-    const v = document.getElementById('searchBar').value.toLowerCase();
-    const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
-    for(let r of rows) r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none";
-}
-function filterModalNames() {
-    const v = document.getElementById('modalSearch').value.toLowerCase();
-    const items = document.getElementsByClassName('checklist-item');
-    for(let i of items) i.style.display = i.innerText.toLowerCase().includes(v) ? "flex" : "none";
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 3200);
 }
