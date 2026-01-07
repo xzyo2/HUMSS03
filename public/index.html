@@ -114,8 +114,14 @@
             </div>
 
             <div id="dashboardView" style="display:none;">
-                <h3>Mark Absences</h3>
-                <p class="hint-text">Select date to mark records for:</p>
+                <div class="header-row">
+                    <h3 style="margin:0">Manage Records</h3>
+                    <button class="delete-icon-btn" onclick="deleteDateRecords()" title="Delete all records for this date">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+
+                <p class="hint-text">Select date to Add or Edit records:</p>
                 
                 <div class="date-picker-wrapper" style="margin-bottom: 15px;">
                     <input type="date" id="adminDate" onchange="validateSchoolDay(this)">
@@ -130,10 +136,12 @@
                 <div class="student-checklist" id="studentChecklist">
                     </div>
                 
-                <button class="action-btn" onclick="submitAttendance()">Save Records</button>
+                <button id="saveBtn" class="action-btn" onclick="submitAttendance()">Save Records</button>
             </div>
         </div>
     </div>
+
+    <div id="toast-container"></div>
 
     <script src="script.js"></script>
 </body>
