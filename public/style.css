@@ -237,3 +237,27 @@ th { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
     .controls-grid { grid-template-columns: 1fr; gap: 10px; }
     .balance-amount { font-size: 2.5rem; }
 }
+
+/* --- FIX FOR CHECKBOXES --- */
+/* This overrides the general input styling so checkboxes aren't huge */
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-right: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    accent-color: var(--danger); /* Red checkmark */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+/* Ensure the label sits next to it nicely */
+.checklist-item label {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    cursor: pointer;
+    padding: 8px 0;
+}
