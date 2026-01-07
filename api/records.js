@@ -10,13 +10,11 @@ const pool = mysql.createPool({
 });
 
 export default async function handler(req, res) {
-    // Hardcoded credentials for this specific feature as requested
-    const ADMIN_USER = "Admin";
-    const ADMIN_PASS = "truncatetable"; 
+    // SECURE: Now reads from Vercel settings, not visible in code
+    const ADMIN_PASS = process.env.RECORDS_ADMIN_PASSWORD; 
 
     try {
-        // GET: Fetch All Violations (Raw Data)
-        // Frontend will handle counting and hiding reasons from public view logic
+        // GET: Fetch All Violations
         if (req.method === 'GET') {
             const [rows] = await pool.query('SELECT * FROM student_violations ORDER BY created_at DESC');
             return res.status(200).json(rows);
