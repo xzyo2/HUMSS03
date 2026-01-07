@@ -162,9 +162,50 @@ nav.glass-nav {
 }
 
 /* History List in Modal */
+/* History List in Modal */
 .history-item {
-    background: rgba(255, 255, 255, 0.03); border-left: 3px solid var(--danger);
-    padding: 12px; margin-bottom: 8px; border-radius: 0 6px 6px 0;
+    background: rgba(255, 255, 255, 0.03); 
+    border-left: 3px solid var(--danger);
+    padding: 12px; 
+    margin-bottom: 8px; 
+    border-radius: 0 6px 6px 0;
+    
+    /* Layout for delete button */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-content {
+    flex: 1; /* Takes up all available space */
+}
+
+.history-date { 
+    font-size: 0.75rem; 
+    color: var(--text-muted); 
+    margin-bottom: 4px; 
+    display: block; 
+}
+
+.history-reason { 
+    font-size: 0.9rem; 
+    color: #e2e8f0; 
+}
+
+/* Specific Delete Button for History */
+.history-delete-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: 10px;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+.history-delete-btn:hover {
+    color: var(--danger);
+    transform: scale(1.1);
 }
 .history-date { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; display: block; }
 .history-reason { font-size: 0.9rem; color: #e2e8f0; }
@@ -261,3 +302,4 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
