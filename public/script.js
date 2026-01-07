@@ -282,6 +282,7 @@ async function submitViolation() {
 function viewStudentHistory(name) {
     if (currentUserRole !== 'admin') return;
 
+    // Show View
     document.getElementById('adminModal').style.display = 'block';
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('logoutView').style.display = 'none';
@@ -297,17 +298,56 @@ function viewStudentHistory(name) {
     if (studentViolations.length === 0) {
         historyContainer.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Clean Record. No violations.</div>';
     } else {
+        // Sort by newest first
         studentViolations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
         studentViolations.forEach(v => {
             const date = new Date(v.created_at).toLocaleString();
+            
+            // Note: We use a wrapper div (.history-content) for text so the button sits on the right
             const html = `
                 <div class="history-item">
-                    <span class="history-date">${date}</span>
-                    <div class="history-reason">${v.violation_reason}</div>
+                    <div class="history-content">
+                        <span class="history-date">${date}</span>
+                        <div class="history-reason">${v.violation_reason}</div>
+                    </div>
+                    <button class="history-delete-btn" onclick="deleteViolation(${v.id}, '${name}')" title="Remove Violation">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             `;
             historyContainer.insertAdjacentHTML('beforeend', html);
         });
+    }
+}
+
+async function deleteViolation(id, studentName) {
+    if(!confirm("Are you sure you want to delete this violation log?")) return;
+
+    try {
+        const res = await fetch('/api/records', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                action: 'delete', 
+                id: id, 
+                password: sessionPassword 
+            })
+        });
+
+        if(res.ok) {
+            showToast("Violation removed", "success");
+            
+            // 1. Refresh Global Data (Updates the counts on main screen)
+            await loadRecords();
+            
+            // 2. Refresh the History View (So the item disappears immediately)
+            viewStudentHistory(studentName); 
+        } else {
+            showToast("Failed to delete", "error");
+        }
+    } catch(e) {
+        showToast("Server Error", "error");
     }
 }
 
@@ -613,3 +653,4 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
+
