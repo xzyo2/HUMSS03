@@ -4,21 +4,32 @@ const CLASS_LIST = [
     "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
 ];
 
+// --- Typewriter Configuration (FIXED) ---
+const phrases = ["Best section known to man", "Worst section known to man"];
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+// --- Global State ---
 let cachedAttendanceData = []; 
 let tempPassword = "";
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Start Typewriter
     typeWriter();
+
+    // 2. Set Dates
     const dateInput = document.getElementById('viewDate');
     const adminDateInput = document.getElementById('adminDate');
     
     dateInput.value = START_DATE; 
     adminDateInput.value = START_DATE;
 
+    // 3. Load Data if on specific tab
     if(window.location.hash === '#attendance') loadAttendance();
     
-    // Attempt to load list on startup, but we will force it again later
+    // 4. Pre-load checklist
     loadStudentChecklist(); 
 });
 
@@ -133,7 +144,6 @@ async function verifyAdmin() {
     }
 }
 
-// --- KEY FIX: Force List Load Here ---
 function openAttendanceEditor() {
     const modal = document.getElementById('adminModal');
     modal.style.display = 'block';
@@ -141,10 +151,9 @@ function openAttendanceEditor() {
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
     
-    // 1. Force the student list to build EVERY time this opens
+    // Force reload checklist
     loadStudentChecklist();
 
-    // 2. Sync date
     const viewDate = document.getElementById('viewDate').value;
     const adminDateInput = document.getElementById('adminDate');
     
@@ -152,7 +161,6 @@ function openAttendanceEditor() {
         adminDateInput.value = viewDate;
     }
     
-    // 3. Load checks for that date
     syncCheckboxesWithDate();
     validateSchoolDay(adminDateInput);
 }
@@ -161,7 +169,6 @@ function syncCheckboxesWithDate() {
     const targetDate = document.getElementById('adminDate').value;
     validateSchoolDay(document.getElementById('adminDate'));
     
-    // Uncheck everyone first
     const checkboxes = document.querySelectorAll('.absent-checkbox');
     checkboxes.forEach(box => box.checked = false);
 
@@ -183,10 +190,8 @@ function syncCheckboxesWithDate() {
 
 function loadStudentChecklist() {
     const container = document.getElementById('studentChecklist');
-    container.innerHTML = ''; // Clear existing to prevent duplicates
-    
+    container.innerHTML = ''; 
     CLASS_LIST.forEach(name => {
-        // We use innerHTML += to append. 
         const itemHtml = `<div class="checklist-item"><label style="display:flex; align-items:center; width:100%; cursor:pointer;"><input type="checkbox" value="${name}" class="absent-checkbox"> ${name}</label></div>`;
         container.insertAdjacentHTML('beforeend', itemHtml);
     });
@@ -287,17 +292,36 @@ function filterModalNames() {
         item.style.display = item.innerText.toLowerCase().includes(filter) ? "flex" : "none";
     }
 }
+
+// --- Typewriter Effect (Fixed Logic) ---
 function typeWriter() {
     const target = document.querySelector('.typewriter');
     if (!target) return;
+
     const currentPhrase = phrases[phraseIndex];
-    if (!isDeleting && charIndex < currentPhrase.length) { target.textContent += currentPhrase.charAt(charIndex++); } 
-    else if (isDeleting && charIndex > 0) { target.textContent = currentPhrase.substring(0, --charIndex); }
-    let speed = isDeleting ? 50 : 100;
-    if (!isDeleting && charIndex === currentPhrase.length) { isDeleting = true; speed = 2000; } 
-    else if (isDeleting && charIndex === 0) { isDeleting = false; phraseIndex = (phraseIndex + 1) % phrases.length; }
-    setTimeout(typeWriter, speed);
+    let typeSpeed = 100;
+
+    if (isDeleting) {
+        target.textContent = currentPhrase.substring(0, charIndex - 1);
+        charIndex--;
+        typeSpeed = 50;
+    } else {
+        target.textContent = currentPhrase.substring(0, charIndex + 1);
+        charIndex++;
+    }
+
+    if (!isDeleting && charIndex === currentPhrase.length) {
+        isDeleting = true;
+        typeSpeed = 2000;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        typeSpeed = 500;
+    }
+
+    setTimeout(typeWriter, typeSpeed);
 }
+
 function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
