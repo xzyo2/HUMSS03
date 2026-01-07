@@ -112,8 +112,25 @@
 
     <section id="records" class="page-section">
         <div class="glass-card">
-            <div class="header-row"><h2><i class="fas fa-folder-open"></i> Records</h2></div>
-            <p style="text-align: center; color: #888;">Coming Soon</p>
+            <div class="header-row">
+                <h2><i class="fas fa-folder-open"></i> Student Records</h2>
+                
+                <button id="recordsAdminActionBtn" class="action-btn-small" onclick="openRecordsEditor()" style="display:none;">
+                    <i class="fas fa-gavel"></i> Give Violation
+                </button>
+            </div>
+
+            <div class="controls-grid">
+                <div class="input-group" style="grid-column: span 2;">
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="recordSearchBar" placeholder="Search student name..." onkeyup="loadRecords()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="recordsList" class="records-grid">
+                </div>
         </div>
     </section>
 
@@ -183,6 +200,19 @@
 
                 <button id="saveFundBtn" class="action-btn" onclick="submitTransaction()">Save Transaction</button>
             </div>
+
+            <div id="recordsDashboardView" style="display:none;">
+                <h3>Give Violation</h3>
+                
+                <label style="font-size:0.8rem; color:#888;">Select Student</label>
+                <select id="violationStudentSelect" style="margin-bottom:15px;"></select>
+
+                <label style="font-size:0.8rem; color:#888;">Reason (Admin Only)</label>
+                <textarea id="violationReason" rows="4" style="width:100%; padding:12px; background:#111827; border:1px solid var(--glass-border); border-radius:8px; color:white; outline:none; font-family:inherit; margin-bottom:15px;" placeholder="Describe the violation..."></textarea>
+
+                <button class="action-btn" onclick="submitViolation()">Submit Violation</button>
+            </div>
+
         </div>
     </div>
 
