@@ -23,11 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('adminDate').value = START_DATE;
     if(document.getElementById('fundDate')) document.getElementById('fundDate').value = today;
 
-    // Load Dropdowns & Lists
     loadStudentChecklist(); 
     loadViolationDropdown();
 
-    // Check Hash
     if(window.location.hash === '#attendance') loadAttendance();
     if(window.location.hash === '#funds') loadFunds();
     if(window.location.hash === '#records') loadRecords();
@@ -61,7 +59,6 @@ function toggleAdminModal() {
     if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'block';
         if (sessionPassword) {
-            // Logged In Views
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('logoutView').style.display = 'block';
             document.getElementById('dashboardView').style.display = 'none';
@@ -69,7 +66,6 @@ function toggleAdminModal() {
             document.getElementById('recordsDashboardView').style.display = 'none';
             document.getElementById('violationHistoryView').style.display = 'none';
         } else {
-            // Login Screen
             document.getElementById('loginView').style.display = 'block';
             document.getElementById('logoutView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'none';
@@ -138,7 +134,6 @@ async function verifyAdmin() {
             globalBtn.classList.add('logged-in');
             globalBtn.innerHTML = '<i class="fas fa-unlock"></i>';
 
-            // Theme & Buttons
             if (role === 'secretary') {
                 document.body.classList.add('theme-pink');
                 document.getElementById('attendanceAdminActionBtn').style.display = 'block';
@@ -149,7 +144,7 @@ async function verifyAdmin() {
             } else if (role === 'admin') {
                 document.body.classList.remove('theme-pink');
                 document.getElementById('recordsAdminActionBtn').style.display = 'block';
-                loadRecords(); // Reload to activate click events
+                loadRecords(); 
             }
 
             showToast(`Welcome, ${user}`, "success");
@@ -237,8 +232,8 @@ function openRecordsEditor() {
     document.getElementById('logoutView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'none';
-    document.getElementById('recordsDashboardView').style.display = 'block';
     document.getElementById('violationHistoryView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'block';
 }
 
 function loadViolationDropdown() {
@@ -316,20 +311,13 @@ function viewStudentHistory(name) {
     }
 }
 
-function backToRecordsDashboard() {
-    document.getElementById('violationHistoryView').style.display = 'none';
-    document.getElementById('recordsDashboardView').style.display = 'block';
-}
-
 // ================= FUNDS LOGIC =================
 
 async function refreshFunds() {
     const icon = document.getElementById('refreshIcon');
     if(icon) icon.classList.add('fa-spin');
-    
     fundsPage = 1; 
     await loadFunds(false); 
-    
     if(icon) icon.classList.remove('fa-spin');
     showToast("Funds updated", "success");
 }
@@ -396,6 +384,7 @@ function openFundsEditor() {
     document.getElementById('logoutView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'none';
     document.getElementById('recordsDashboardView').style.display = 'none';
+    document.getElementById('violationHistoryView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'block';
 }
 
@@ -485,6 +474,7 @@ function openAttendanceEditor() {
     document.getElementById('logoutView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'none';
     document.getElementById('recordsDashboardView').style.display = 'none';
+    document.getElementById('violationHistoryView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
     
     loadStudentChecklist(); 
