@@ -222,3 +222,64 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* --- RECORDS SECTION --- */
+.records-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.record-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* Align top in case name is long */
+    transition: 0.3s ease;
+}
+
+.record-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--accent);
+}
+
+.r-info h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.privacy-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.violation-badge {
+    background: rgba(239, 68, 68, 0.15); /* Red Tint */
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Make cards look good on mobile */
+@media (max-width: 768px) {
+    .record-card {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .violation-badge {
+        width: 100%;
+    }
+}
