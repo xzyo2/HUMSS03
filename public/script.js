@@ -22,10 +22,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('adminDate').value = START_DATE;
     if(document.getElementById('fundDate')) document.getElementById('fundDate').value = today;
 
-    if(window.location.hash === '#attendance') loadAttendance();
-    if(window.location.hash === '#funds') loadFunds();
-    
+    // Load Checklists
     loadStudentChecklist(); 
+    loadViolationDropdown(); // New: Fill dropdown for admin
+
+    // Initial Load based on URL
+    const hash = window.location.hash;
+    if(hash === '#attendance') loadAttendance();
+    if(hash === '#funds') loadFunds();
+    if(hash === '#records') loadRecords();
 });
 
 // --- Navigation ---
@@ -46,27 +51,31 @@ function showSection(id) {
 
     if(id === 'attendance') loadAttendance();
     if(id === 'funds') { fundsPage = 1; loadFunds(); }
+    if(id === 'records') loadRecords();
 }
 
 // ================= ADMIN SYSTEM =================
 
 function toggleAdminModal() {
     const modal = document.getElementById('adminModal');
-    
     if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'block';
         if (sessionPassword) {
-            // Logged In View
+            // Logged In Views
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('logoutView').style.display = 'block';
+            
+            // Hide all dashboard views initially
             document.getElementById('dashboardView').style.display = 'none';
             document.getElementById('fundsDashboardView').style.display = 'none';
+            document.getElementById('recordsDashboardView').style.display = 'none';
         } else {
-            // Logged Out View
+            // Login Screen
             document.getElementById('loginView').style.display = 'block';
             document.getElementById('logoutView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'none';
             document.getElementById('fundsDashboardView').style.display = 'none';
+            document.getElementById('recordsDashboardView').style.display = 'none';
         }
     } else {
         closeAdminModal();
@@ -85,17 +94,17 @@ function logout() {
     globalBtn.classList.remove('logged-in');
     globalBtn.innerHTML = '<i class="fas fa-lock"></i>';
     
+    // Hide all Action Buttons
     document.getElementById('attendanceAdminActionBtn').style.display = 'none';
     document.getElementById('fundsAdminActionBtn').style.display = 'none';
+    document.getElementById('recordsAdminActionBtn').style.display = 'none';
     
     closeAdminModal();
     showToast("Logged out successfully", "success");
 
-    // Force refresh funds to hide delete buttons if on funds page
-    if (window.location.hash === '#funds' || document.getElementById('funds').style.display === 'block') {
-        fundsPage = 1;
-        loadFunds(); 
-    }
+    // Force refresh views to clear admin controls
+    const hash = window.location.hash || '#home';
+    if(hash === '#funds') { fundsPage = 1; loadFunds(); }
 }
 
 async function verifyAdmin() {
@@ -108,6 +117,7 @@ async function verifyAdmin() {
     
     if (user === 'secretary') { endpoint = '/api/attendance'; role = 'secretary'; }
     else if (user === 'Audit') { endpoint = '/api/funds'; role = 'treasurer'; }
+    else if (user === 'Admin') { endpoint = '/api/records'; role = 'admin'; } // New Role
     else { err.textContent = "Unknown Username"; return; }
 
     btn.textContent = "Checking...";
@@ -136,9 +146,10 @@ async function verifyAdmin() {
             } else if (role === 'treasurer') {
                 document.body.classList.remove('theme-pink');
                 document.getElementById('fundsAdminActionBtn').style.display = 'block';
-                // Force refresh to show delete buttons
-                fundsPage = 1;
-                loadFunds(); 
+                fundsPage = 1; loadFunds(); 
+            } else if (role === 'admin') {
+                document.body.classList.remove('theme-pink'); // Default Blue for Admin
+                document.getElementById('recordsAdminActionBtn').style.display = 'block';
             }
 
             showToast(`Welcome, ${user}`, "success");
@@ -154,7 +165,128 @@ async function verifyAdmin() {
     }
 }
 
-// ================= FUNDS LOGIC =================
+// ================= RECORDS LOGIC =================
+
+async function loadRecords() {
+    const container = document.getElementById('recordsList');
+    const filter = document.getElementById('recordSearchBar').value.toLowerCase();
+    
+    // If not searching, and empty, show loading
+    if(container.innerHTML === '') container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Loading records...</div>';
+
+    try {
+        const res = await fetch('/api/records');
+        const violations = await res.json();
+        
+        // Process Data: Count violations per student
+        // 1. Create a map of all students with 0 violations
+        let studentMap = {};
+        CLASS_LIST.forEach(name => {
+            studentMap[name] = 0;
+        });
+
+        // 2. Add counts from DB
+        violations.forEach(v => {
+            if(studentMap.hasOwnProperty(v.student_name)) {
+                studentMap[v.student_name]++;
+            } else {
+                // If name in DB isn't in CLASS_LIST (typo?), add it anyway
+                studentMap[v.student_name] = 1;
+            }
+        });
+
+        // 3. Convert to Array and Sort (High to Low)
+        let sortedStudents = Object.keys(studentMap).map(name => {
+            return { name: name, count: studentMap[name] };
+        }).sort((a, b) => b.count - a.count);
+
+        // 4. Render
+        container.innerHTML = '';
+        let hasResults = false;
+
+        sortedStudents.forEach(s => {
+            if(s.name.toLowerCase().includes(filter)) {
+                hasResults = true;
+                const html = `
+                    <div class="record-card">
+                        <div class="r-info">
+                            <h3>${s.name}</h3>
+                            <div class="privacy-text">Due to privacy reasons, reason for violation will not be set public. Message any classroom officer.</div>
+                        </div>
+                        <div class="violation-badge">Violation: ${s.count}</div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            }
+        });
+
+        if(!hasResults) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No student found.</div>';
+        }
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div style="text-align:center; color:var(--danger);">Error loading records.</div>';
+    }
+}
+
+function openRecordsEditor() {
+    document.getElementById('adminModal').style.display = 'block';
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('logoutView').style.display = 'none';
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('fundsDashboardView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'block';
+}
+
+function loadViolationDropdown() {
+    const select = document.getElementById('violationStudentSelect');
+    if(!select) return;
+    select.innerHTML = '';
+    CLASS_LIST.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.text = name;
+        select.appendChild(option);
+    });
+}
+
+async function submitViolation() {
+    const student = document.getElementById('violationStudentSelect').value;
+    const reason = document.getElementById('violationReason').value;
+
+    if(!reason) { showToast("Please enter a reason", "error"); return; }
+    
+    // Admin Password (hardcoded check on backend, but we need to send the session pass)
+    // Actually, the backend checks specific password for "Admin". 
+    // Since verifyAdmin stores the pass in sessionPassword, we send that.
+
+    try {
+        const res = await fetch('/api/records', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                action: 'add', 
+                student_name: student, 
+                reason: reason, 
+                password: sessionPassword 
+            })
+        });
+
+        if(res.ok) {
+            showToast("Violation Added", "success");
+            document.getElementById('violationReason').value = ''; // Clear text
+            closeAdminModal();
+            loadRecords(); // Refresh public list
+        } else {
+            showToast("Error or Unauthorized", "error");
+        }
+    } catch(e) {
+        showToast("Server Error", "error");
+    }
+}
+
+// ================= FUNDS LOGIC (Existing) =================
 
 async function refreshFunds() {
     const icon = document.getElementById('refreshIcon');
@@ -198,7 +330,6 @@ async function loadFunds(append = false) {
             const sign = t.type === 'income' ? '+' : '-';
             const colorClass = t.type === 'income' ? 'income' : 'expense';
             
-            // Generate Delete Button ONLY if Audit/Treasurer
             let deleteBtnHtml = '';
             if (currentUserRole === 'treasurer') {
                 deleteBtnHtml = `<button class="t-delete-btn" onclick="deleteFundTransaction(${t.id})" title="Delete"><i class="fas fa-times"></i></button>`;
@@ -229,6 +360,7 @@ function openFundsEditor() {
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('logoutView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'block';
 }
 
@@ -252,7 +384,7 @@ async function submitTransaction() {
         if(res.ok) {
             showToast("Transaction Saved", "success");
             closeAdminModal();
-            refreshFunds(); // Use refresh logic to reload list
+            refreshFunds(); 
             document.getElementById('fundTitle').value = '';
             document.getElementById('fundAmount').value = '';
         } else {
@@ -275,7 +407,6 @@ async function deleteFundTransaction(id) {
         });
         if(res.ok) {
             showToast("Transaction deleted", "success");
-            // Reload without resetting page to 1 if possible, but simplest is full refresh
             refreshFunds(); 
         } else {
             showToast("Failed to delete", "error");
@@ -285,26 +416,21 @@ async function deleteFundTransaction(id) {
     }
 }
 
-// ================= ATTENDANCE LOGIC =================
-
+// ================= ATTENDANCE LOGIC (Existing) =================
 async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     const selectedDate = document.getElementById('viewDate').value;
     if (!selectedDate) return;
-
     tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px;">Loading records...</td></tr>';
-
     try {
         const res = await fetch('/api/attendance');
         cachedAttendanceData = await res.json(); 
         const dailyRecords = cachedAttendanceData.filter(rec => rec.date.startsWith(selectedDate));
-        
         tbody.innerHTML = '';
         if (dailyRecords.length === 0) {
             tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#888;">No records for this date.</td></tr>';
             return;
         }
-
         dailyRecords.sort((a, b) => a.student_name.localeCompare(b.student_name));
         dailyRecords.forEach(row => {
             const statusClass = row.status === 'Absent' ? 'status-absent' : 'status-present';
@@ -323,12 +449,12 @@ function openAttendanceEditor() {
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('logoutView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
     
     loadStudentChecklist(); 
     const viewDate = document.getElementById('viewDate').value;
     if (viewDate) document.getElementById('adminDate').value = viewDate;
-    
     syncCheckboxesWithDate();
 }
 
@@ -336,7 +462,6 @@ function syncCheckboxesWithDate() {
     const targetDate = document.getElementById('adminDate').value;
     const checkboxes = document.querySelectorAll('.absent-checkbox');
     checkboxes.forEach(box => box.checked = false);
-
     if (!targetDate || cachedAttendanceData.length === 0) return;
     const recordsForDate = cachedAttendanceData.filter(rec => rec.date.startsWith(targetDate));
     if (recordsForDate.length > 0) {
