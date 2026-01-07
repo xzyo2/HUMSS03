@@ -1,13 +1,11 @@
-// --- Configuration ---
 const START_DATE = "2026-01-12"; 
 
-// Master List (Matches the App's standard)
+
 const CLASS_LIST = [
     "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
 ];
 
-// Birthday Data (Mapped to match CLASS_LIST format where possible)
-// Format: MM-DD
+
 const BIRTHDAY_DATA = [
     { name: "Alcantara, Adrian", date: "01-15" },
     { name: "Estoesta, Lorainne", date: "01-19" },
@@ -51,14 +49,14 @@ const BIRTHDAY_DATA = [
 const phrases = ["Best section known to man", "Worst section known to man"];
 let phraseIndex = 0, charIndex = 0, isDeleting = false;
 
-// --- Global State ---
+
 let cachedAttendanceData = []; 
 let cachedViolationData = [];
 let fundsPage = 1;
 let currentUserRole = null; 
 let sessionPassword = "";
 
-// --- Init ---
+
 document.addEventListener('DOMContentLoaded', () => {
     typeWriter();
 
@@ -76,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(window.location.hash === '#birthdays') loadBirthdays();
 });
 
-// --- Nav ---
+
 function showSection(id) {
     document.querySelectorAll('.page-section').forEach(sec => {
         sec.classList.remove('active-section');
@@ -98,7 +96,7 @@ function showSection(id) {
     if(id === 'birthdays') loadBirthdays();
 }
 
-// ================= BIRTHDAY LOGIC (NEW) =================
+
 
 function loadBirthdays() {
     const container = document.getElementById('birthdayGrid');
@@ -107,22 +105,17 @@ function loadBirthdays() {
     const today = new Date();
     const currentYear = today.getFullYear();
     
-    // 1. Calculate Time Diff for each student
+
     const processedBirthdays = BIRTHDAY_DATA.map(b => {
         const [month, day] = b.date.split('-').map(Number);
-        
-        // Create date for this year
         let nextBday = new Date(currentYear, month - 1, day);
-        
-        // If passed, move to next year
         if (nextBday < today && nextBday.getDate() !== today.getDate()) {
             nextBday.setFullYear(currentYear + 1);
         }
         
-        // Reset time to midnight for accurate day calc
         const diffMs = nextBday - today;
         
-        // Calculate units
+
         const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
         
@@ -135,10 +128,10 @@ function loadBirthdays() {
         };
     });
 
-    // 2. Sort: Lowest diff first (Nearest)
+
     processedBirthdays.sort((a, b) => a.diffDays - b.diffDays);
 
-    // 3. Render
+    
     processedBirthdays.forEach((b, index) => {
         let rankClass = 'rank-standard';
         if (index === 0) rankClass = 'rank-1';
@@ -198,7 +191,7 @@ function loadBirthdays() {
     });
 }
 
-// ================= ADMIN SYSTEM =================
+
 
 function toggleAdminModal() {
     const modal = document.getElementById('adminModal');
@@ -306,7 +299,7 @@ async function verifyAdmin() {
     }
 }
 
-// ================= RECORDS LOGIC =================
+
 
 async function loadRecords() {
     const container = document.getElementById('recordsList');
@@ -352,7 +345,7 @@ async function loadRecords() {
                     hoverTitle = 'title="Click to view details"';
                 }
 
-                // Updated Grammar here
+
                 const html = `
                     <div class="record-card" ${clickAction} ${hoverTitle} style="${cursorStyle}">
                         <div class="r-info">
@@ -489,7 +482,6 @@ async function deleteViolation(id, studentName) {
     }
 }
 
-// ================= FUNDS LOGIC =================
 
 async function refreshFunds() {
     const icon = document.getElementById('refreshIcon');
@@ -618,7 +610,7 @@ async function deleteFundTransaction(id) {
     }
 }
 
-// ================= ATTENDANCE LOGIC =================
+
 async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     const selectedDate = document.getElementById('viewDate').value;
@@ -743,7 +735,6 @@ async function deleteDateRecords() {
     }
 }
 
-// --- Helpers ---
 function filterAttendance() {
     const input = document.getElementById('searchBar').value.toLowerCase();
     const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
@@ -791,3 +782,4 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
+
