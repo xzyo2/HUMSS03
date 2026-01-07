@@ -1,22 +1,33 @@
 // --- Configuration ---
-// School starts Jan 12, 2026. Only Mon-Wed are school days.
 const START_DATE = "2026-01-12"; 
 const CLASS_LIST = [
     "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
 ];
 
+// --- TOAST NOTIFICATION SYSTEM ---
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    
+    toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+    container.appendChild(toast);
+
+    // Remove from DOM after animation (3s)
+    setTimeout(() => {
+        toast.remove();
+    }, 3200);
+}
+
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     typeWriter();
-    
-    // Set default date to Start Date (Jan 12)
     const dateInput = document.getElementById('viewDate');
     const adminDateInput = document.getElementById('adminDate');
-    
     dateInput.value = START_DATE; 
     adminDateInput.value = START_DATE;
-
-    // Load initial data for that date
     if(window.location.hash === '#attendance') loadAttendance();
 });
 
@@ -32,8 +43,6 @@ function showSection(id) {
     if(id === 'home') target.style.display = 'flex';
     target.classList.add('active-section');
     
-    // Find button that triggered this or match by text (simple hack for this structure)
-    // In production, better to pass 'this' or use IDs
     const navButtons = document.querySelectorAll('.nav-btn');
     if(id === 'home') navButtons[0].classList.add('active');
     if(id === 'attendance') {
@@ -45,66 +54,51 @@ function showSection(id) {
     if(id === 'birthdays') navButtons[4].classList.add('active');
 }
 
-// --- Typewriter (Same as before) ---
+// --- Typewriter ---
 const phrases = ["Best section known to man", "Worst section known to man"];
 let phraseIndex = 0;
 let charIndex = 0;
 let isDeleting = false;
 
 function typeWriter() {
-    const currentPhrase = phrases[phraseIndex];
-    const typeSpeed = isDeleting ? 50 : 100;
     const target = document.querySelector('.typewriter');
     if (!target) return;
-
+    const currentPhrase = phrases[phraseIndex];
+    
     if (!isDeleting && charIndex < currentPhrase.length) {
-        target.textContent += currentPhrase.charAt(charIndex);
-        charIndex++;
+        target.textContent += currentPhrase.charAt(charIndex++);
     } else if (isDeleting && charIndex > 0) {
-        target.textContent = currentPhrase.substring(0, charIndex - 1);
-        charIndex--;
+        target.textContent = currentPhrase.substring(0, --charIndex);
     }
+    
+    let speed = isDeleting ? 50 : 100;
     if (!isDeleting && charIndex === currentPhrase.length) {
-        isDeleting = true; setTimeout(typeWriter, 2000); return;
+        isDeleting = true; speed = 2000;
     } else if (isDeleting && charIndex === 0) {
         isDeleting = false; phraseIndex = (phraseIndex + 1) % phrases.length;
     }
-    setTimeout(typeWriter, typeSpeed);
+    setTimeout(typeWriter, speed);
 }
 
 // --- Attendance Logic ---
-
 function validateSchoolDay(input) {
     const date = new Date(input.value);
-    const day = date.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, ...
+    const day = date.getDay(); 
     const warning = document.getElementById('dateWarning');
-    
-    // School is Mon(1), Tue(2), Wed(3) only
-    if (day === 0 || day > 3) {
-        warning.textContent = "Warning: School days are only Mon-Wed.";
-    } else {
-        warning.textContent = "";
-    }
+    if (day === 0 || day > 3) warning.textContent = "Warning: School days are only Mon-Wed.";
+    else warning.textContent = "";
 }
 
 async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
-    const datePicker = document.getElementById('viewDate');
-    const selectedDate = datePicker.value;
+    const selectedDate = document.getElementById('viewDate').value;
 
-    if (!selectedDate) {
-        tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;">Please select a date.</td></tr>';
-        return;
-    }
-
+    if (!selectedDate) return;
     tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px;">Loading records...</td></tr>';
 
     try {
         const res = await fetch('/api/attendance');
         const allRecords = await res.json();
-        
-        // Filter Client Side (Simple for small class size)
-        // We compare YYYY-MM-DD strings
         const dailyRecords = allRecords.filter(rec => rec.date.startsWith(selectedDate));
         
         tbody.innerHTML = '';
@@ -113,21 +107,13 @@ async function loadAttendance() {
             return;
         }
 
-        // Sort by Name
         dailyRecords.sort((a, b) => a.student_name.localeCompare(b.student_name));
-
         dailyRecords.forEach(row => {
             const statusClass = row.status === 'Absent' ? 'status-absent' : 'status-present';
             const statusText = row.status === 'Absent' ? 'Absent' : 'Present';
-
-            const tr = `<tr>
-                <td style="font-weight: 500;">${row.student_name}</td>
-                <td><span class="status-pill ${statusClass}">${statusText}</span></td>
-            </tr>`;
-            tbody.innerHTML += tr;
+            tbody.innerHTML += `<tr><td style="font-weight: 500;">${row.student_name}</td><td><span class="status-pill ${statusClass}">${statusText}</span></td></tr>`;
         });
     } catch (err) {
-        console.error(err);
         tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color: var(--danger);">Connection Error.</td></tr>';
     }
 }
@@ -135,13 +121,9 @@ async function loadAttendance() {
 function filterAttendance() {
     const input = document.getElementById('searchBar').value.toLowerCase();
     const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
-    
     for (let row of rows) {
-        const nameCell = row.getElementsByTagName('td')[0];
-        if (nameCell) {
-            const txt = nameCell.textContent || nameCell.innerText;
-            row.style.display = txt.toLowerCase().indexOf(input) > -1 ? "" : "none";
-        }
+        const txt = row.innerText;
+        row.style.display = txt.toLowerCase().indexOf(input) > -1 ? "" : "none";
     }
 }
 
@@ -162,36 +144,25 @@ async function verifyAdmin() {
     const err = document.getElementById('loginError');
     const btn = document.querySelector('#loginView .action-btn');
 
-    // Simple username check (cosmetic)
-    if (user !== 'secretary') {
-        err.textContent = "Invalid Username";
-        return;
-    }
+    if (user !== 'secretary') { err.textContent = "Invalid Username"; return; }
 
-    // Show loading state
     btn.textContent = "Checking...";
     err.textContent = "";
 
     try {
-        // Ask the server: "Is this password right?"
         const res = await fetch('/api/attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'login', // Tell server we are just logging in
-                password: pass 
-            })
+            body: JSON.stringify({ action: 'login', password: pass })
         });
 
         if (res.ok) {
-            // Success!
-            tempPassword = pass; // Keep it in memory only while using the app
+            tempPassword = pass; 
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'block';
             loadStudentChecklist();
-            
-            // Validate the date immediately
             validateSchoolDay(document.getElementById('adminDate'));
+            showToast("Welcome back, Secretary", "success");
         } else {
             err.textContent = "Wrong Password";
         }
@@ -205,17 +176,8 @@ async function verifyAdmin() {
 function loadStudentChecklist() {
     const container = document.getElementById('studentChecklist');
     container.innerHTML = '';
-    
     CLASS_LIST.forEach(name => {
-        const div = document.createElement('div');
-        div.className = 'checklist-item';
-        div.innerHTML = `
-            <label style="display:flex; align-items:center; width:100%; cursor:pointer;">
-                <input type="checkbox" value="${name}" class="absent-checkbox">
-                ${name}
-            </label>
-        `;
-        container.appendChild(div);
+        container.innerHTML += `<div class="checklist-item"><label style="display:flex; align-items:center; width:100%; cursor:pointer;"><input type="checkbox" value="${name}" class="absent-checkbox"> ${name}</label></div>`;
     });
 }
 
@@ -223,18 +185,24 @@ function filterModalNames() {
     const filter = document.getElementById('modalSearch').value.toLowerCase();
     const items = document.getElementsByClassName('checklist-item');
     for (let item of items) {
-        const label = item.innerText;
-        item.style.display = label.toLowerCase().includes(filter) ? "flex" : "none";
+        item.style.display = item.innerText.toLowerCase().includes(filter) ? "flex" : "none";
     }
 }
 
+// --- SUBMIT (SAVE/EDIT) ---
 async function submitAttendance() {
     const date = document.getElementById('adminDate').value;
-    if(!date) { alert("Please select a date"); return; }
+    if(!date) { showToast("Please select a date", "error"); return; }
+
+    const saveBtn = document.getElementById('saveBtn');
+    const originalText = saveBtn.innerText;
+    
+    // Loading State
+    saveBtn.innerHTML = '<i class="fas fa-spinner"></i> Saving...';
+    saveBtn.disabled = true;
 
     const checkboxes = document.querySelectorAll('.absent-checkbox');
     const records = [];
-    
     checkboxes.forEach(box => {
         records.push({
             name: box.value,
@@ -247,21 +215,56 @@ async function submitAttendance() {
         const res = await fetch('/api/attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ records: records, password: tempPassword })
+            body: JSON.stringify({ 
+                action: 'save', // Uses overwrite logic
+                records: records, 
+                password: tempPassword 
+            })
         });
 
         if (res.ok) {
-            alert('Saved successfully!');
+            showToast("Records saved successfully!", "success");
             closeAdminModal();
-            // Update view date to match what we just saved so we can see it
             document.getElementById('viewDate').value = date;
-            loadAttendance(); 
+            loadAttendance();
         } else {
-            alert('Failed to save.');
+            showToast("Failed to save records", "error");
         }
     } catch (e) {
-        console.error(e);
-        alert('Error saving data');
+        showToast("Server Error", "error");
+    } finally {
+        // Restore Button
+        saveBtn.innerText = originalText;
+        saveBtn.disabled = false;
     }
+}
 
+// --- DELETE FUNCTION ---
+async function deleteDateRecords() {
+    const date = document.getElementById('adminDate').value;
+    if(!date) { showToast("Select a date to delete", "error"); return; }
+
+    if(!confirm(`Are you sure you want to delete ALL records for ${date}?`)) return;
+
+    try {
+        const res = await fetch('/api/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'delete', 
+                date: date, 
+                password: tempPassword 
+            })
+        });
+
+        if (res.ok) {
+            showToast(`Deleted records for ${date}`, "success");
+            closeAdminModal();
+            loadAttendance();
+        } else {
+            showToast("Failed to delete", "error");
+        }
+    } catch (e) {
+        showToast("Server Error", "error");
+    }
 }
