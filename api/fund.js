@@ -13,19 +13,17 @@ export default async function handler(req, res) {
     const TREASURER_PASS = process.env.TREASURER_PASSWORD;
 
     try {
-        // GET: Fetch Transactions & Total Balance
+        // GET: Fetch Transactions
         if (req.method === 'GET') {
             const page = parseInt(req.query.page) || 1;
             const limit = 15;
             const offset = (page - 1) * limit;
 
-            // 1. Get transactions (Paginated)
             const [rows] = await pool.query(
                 'SELECT * FROM fund_transactions ORDER BY date DESC, created_at DESC LIMIT ? OFFSET ?',
                 [limit, offset]
             );
 
-            // 2. Get Total Balance (Sum of all time)
             const [balanceResult] = await pool.query(
                 "SELECT SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as total FROM fund_transactions"
             );
@@ -35,24 +33,32 @@ export default async function handler(req, res) {
             return res.status(200).json({ transactions: rows, total: total });
         }
 
-        // POST: Add New Transaction (Treasurer Only)
+        // POST: Login OR Save Transaction
         if (req.method === 'POST') {
-            const { title, amount, type, date, password } = req.body;
+            const { action, title, amount, type, date, password } = req.body;
 
+            // 1. Check Password
             if (password !== TREASURER_PASS) {
                 return res.status(401).json({ error: 'Unauthorized' });
             }
 
-            await pool.execute(
-                'INSERT INTO fund_transactions (title, amount, type, date) VALUES (?, ?, ?, ?)',
-                [title, amount, type, date]
-            );
+            // 2. Handle Login Check (Don't save anything)
+            if (action === 'login') {
+                return res.status(200).json({ success: true });
+            }
 
-            return res.status(200).json({ message: 'Transaction Saved' });
+            // 3. Save Transaction
+            if (title && amount) {
+                await pool.execute(
+                    'INSERT INTO fund_transactions (title, amount, type, date) VALUES (?, ?, ?, ?)',
+                    [title, amount, type, date]
+                );
+                return res.status(200).json({ message: 'Transaction Saved' });
+            }
         }
 
     } catch (error) {
-        console.error(error);
+        console.error("Funds API Error:", error);
         return res.status(500).json({ error: 'Database Error' });
     }
 }
