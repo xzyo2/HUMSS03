@@ -9,6 +9,7 @@ let phraseIndex = 0, charIndex = 0, isDeleting = false;
 
 // --- Global State ---
 let cachedAttendanceData = []; 
+let cachedViolationData = [];
 let fundsPage = 1;
 let currentUserRole = null; 
 let sessionPassword = "";
@@ -22,18 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('adminDate').value = START_DATE;
     if(document.getElementById('fundDate')) document.getElementById('fundDate').value = today;
 
-    // Load Checklists
+    // Load Dropdowns & Lists
     loadStudentChecklist(); 
-    loadViolationDropdown(); // New: Fill dropdown for admin
+    loadViolationDropdown();
 
-    // Initial Load based on URL
-    const hash = window.location.hash;
-    if(hash === '#attendance') loadAttendance();
-    if(hash === '#funds') loadFunds();
-    if(hash === '#records') loadRecords();
+    // Check Hash
+    if(window.location.hash === '#attendance') loadAttendance();
+    if(window.location.hash === '#funds') loadFunds();
+    if(window.location.hash === '#records') loadRecords();
 });
 
-// --- Navigation ---
+// --- Nav ---
 function showSection(id) {
     document.querySelectorAll('.page-section').forEach(sec => {
         sec.classList.remove('active-section');
@@ -64,11 +64,10 @@ function toggleAdminModal() {
             // Logged In Views
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('logoutView').style.display = 'block';
-            
-            // Hide all dashboard views initially
             document.getElementById('dashboardView').style.display = 'none';
             document.getElementById('fundsDashboardView').style.display = 'none';
             document.getElementById('recordsDashboardView').style.display = 'none';
+            document.getElementById('violationHistoryView').style.display = 'none';
         } else {
             // Login Screen
             document.getElementById('loginView').style.display = 'block';
@@ -76,6 +75,7 @@ function toggleAdminModal() {
             document.getElementById('dashboardView').style.display = 'none';
             document.getElementById('fundsDashboardView').style.display = 'none';
             document.getElementById('recordsDashboardView').style.display = 'none';
+            document.getElementById('violationHistoryView').style.display = 'none';
         }
     } else {
         closeAdminModal();
@@ -94,7 +94,6 @@ function logout() {
     globalBtn.classList.remove('logged-in');
     globalBtn.innerHTML = '<i class="fas fa-lock"></i>';
     
-    // Hide all Action Buttons
     document.getElementById('attendanceAdminActionBtn').style.display = 'none';
     document.getElementById('fundsAdminActionBtn').style.display = 'none';
     document.getElementById('recordsAdminActionBtn').style.display = 'none';
@@ -102,9 +101,9 @@ function logout() {
     closeAdminModal();
     showToast("Logged out successfully", "success");
 
-    // Force refresh views to clear admin controls
     const hash = window.location.hash || '#home';
     if(hash === '#funds') { fundsPage = 1; loadFunds(); }
+    if(hash === '#records') loadRecords(); 
 }
 
 async function verifyAdmin() {
@@ -117,7 +116,7 @@ async function verifyAdmin() {
     
     if (user === 'secretary') { endpoint = '/api/attendance'; role = 'secretary'; }
     else if (user === 'Audit') { endpoint = '/api/funds'; role = 'treasurer'; }
-    else if (user === 'Admin') { endpoint = '/api/records'; role = 'admin'; } // New Role
+    else if (user === 'Admin') { endpoint = '/api/records'; role = 'admin'; }
     else { err.textContent = "Unknown Username"; return; }
 
     btn.textContent = "Checking...";
@@ -139,7 +138,7 @@ async function verifyAdmin() {
             globalBtn.classList.add('logged-in');
             globalBtn.innerHTML = '<i class="fas fa-unlock"></i>';
 
-            // Theme & Buttons Logic
+            // Theme & Buttons
             if (role === 'secretary') {
                 document.body.classList.add('theme-pink');
                 document.getElementById('attendanceAdminActionBtn').style.display = 'block';
@@ -148,8 +147,9 @@ async function verifyAdmin() {
                 document.getElementById('fundsAdminActionBtn').style.display = 'block';
                 fundsPage = 1; loadFunds(); 
             } else if (role === 'admin') {
-                document.body.classList.remove('theme-pink'); // Default Blue for Admin
+                document.body.classList.remove('theme-pink');
                 document.getElementById('recordsAdminActionBtn').style.display = 'block';
+                loadRecords(); // Reload to activate click events
             }
 
             showToast(`Welcome, ${user}`, "success");
@@ -167,10 +167,6 @@ async function verifyAdmin() {
 
 // ================= RECORDS LOGIC =================
 
-// Global variable for raw data
-let cachedViolationData = []; 
-
-// Updated loadRecords
 async function loadRecords() {
     const container = document.getElementById('recordsList');
     const filter = document.getElementById('recordSearchBar').value.toLowerCase();
@@ -181,9 +177,8 @@ async function loadRecords() {
         const res = await fetch('/api/records');
         const violations = await res.json();
         
-        cachedViolationData = violations; // Save raw data for Admin View
+        cachedViolationData = violations; 
         
-        // Count violations
         let studentMap = {};
         CLASS_LIST.forEach(name => { studentMap[name] = 0; });
 
@@ -195,12 +190,10 @@ async function loadRecords() {
             }
         });
 
-        // Sort
         let sortedStudents = Object.keys(studentMap).map(name => {
             return { name: name, count: studentMap[name] };
         }).sort((a, b) => b.count - a.count);
 
-        // Render
         container.innerHTML = '';
         let hasResults = false;
 
@@ -208,7 +201,6 @@ async function loadRecords() {
             if(s.name.toLowerCase().includes(filter)) {
                 hasResults = true;
                 
-                // ADMIN FEATURE: Make card clickable
                 let clickAction = '';
                 let cursorStyle = '';
                 let hoverTitle = '';
@@ -235,58 +227,8 @@ async function loadRecords() {
         if(!hasResults) container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No student found.</div>';
 
     } catch (e) {
-        console.error(e);
         container.innerHTML = '<div style="text-align:center; color:var(--danger);">Error loading records.</div>';
     }
-}
-
-// --- NEW FUNCTIONS FOR HISTORY VIEW ---
-
-function viewStudentHistory(name) {
-    if (currentUserRole !== 'admin') return;
-
-    // 1. Open Modal & Show History View
-    document.getElementById('adminModal').style.display = 'block';
-    
-    // Hide other views
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('logoutView').style.display = 'none';
-    document.getElementById('recordsDashboardView').style.display = 'none'; // Hide "Give Violation"
-    
-    // Show History View
-    document.getElementById('violationHistoryView').style.display = 'block';
-    
-    // 2. Populate Data
-    document.getElementById('historyStudentName').textContent = name;
-    const historyContainer = document.getElementById('historyList');
-    historyContainer.innerHTML = '';
-
-    // Filter violations for this student
-    const studentViolations = cachedViolationData.filter(v => v.student_name === name);
-
-    if (studentViolations.length === 0) {
-        historyContainer.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Clean Record. No violations.</div>';
-    } else {
-        // Sort by newest first
-        studentViolations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-        studentViolations.forEach(v => {
-            const date = new Date(v.created_at).toLocaleString(); // Date & Time
-            const html = `
-                <div class="history-item">
-                    <span class="history-date">${date}</span>
-                    <div class="history-reason">${v.violation_reason}</div>
-                </div>
-            `;
-            historyContainer.insertAdjacentHTML('beforeend', html);
-        });
-    }
-}
-
-function backToRecordsDashboard() {
-    // Switch back to the "Give Violation" main screen
-    document.getElementById('violationHistoryView').style.display = 'none';
-    document.getElementById('recordsDashboardView').style.display = 'block';
 }
 
 function openRecordsEditor() {
@@ -296,6 +238,7 @@ function openRecordsEditor() {
     document.getElementById('dashboardView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'none';
     document.getElementById('recordsDashboardView').style.display = 'block';
+    document.getElementById('violationHistoryView').style.display = 'none';
 }
 
 function loadViolationDropdown() {
@@ -316,10 +259,6 @@ async function submitViolation() {
 
     if(!reason) { showToast("Please enter a reason", "error"); return; }
     
-    // Admin Password (hardcoded check on backend, but we need to send the session pass)
-    // Actually, the backend checks specific password for "Admin". 
-    // Since verifyAdmin stores the pass in sessionPassword, we send that.
-
     try {
         const res = await fetch('/api/records', {
             method: 'POST',
@@ -334,9 +273,9 @@ async function submitViolation() {
 
         if(res.ok) {
             showToast("Violation Added", "success");
-            document.getElementById('violationReason').value = ''; // Clear text
+            document.getElementById('violationReason').value = ''; 
             closeAdminModal();
-            loadRecords(); // Refresh public list
+            loadRecords(); 
         } else {
             showToast("Error or Unauthorized", "error");
         }
@@ -345,7 +284,44 @@ async function submitViolation() {
     }
 }
 
-// ================= FUNDS LOGIC (Existing) =================
+function viewStudentHistory(name) {
+    if (currentUserRole !== 'admin') return;
+
+    document.getElementById('adminModal').style.display = 'block';
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('logoutView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'none';
+    document.getElementById('violationHistoryView').style.display = 'block';
+    
+    document.getElementById('historyStudentName').textContent = name;
+    const historyContainer = document.getElementById('historyList');
+    historyContainer.innerHTML = '';
+
+    const studentViolations = cachedViolationData.filter(v => v.student_name === name);
+
+    if (studentViolations.length === 0) {
+        historyContainer.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Clean Record. No violations.</div>';
+    } else {
+        studentViolations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        studentViolations.forEach(v => {
+            const date = new Date(v.created_at).toLocaleString();
+            const html = `
+                <div class="history-item">
+                    <span class="history-date">${date}</span>
+                    <div class="history-reason">${v.violation_reason}</div>
+                </div>
+            `;
+            historyContainer.insertAdjacentHTML('beforeend', html);
+        });
+    }
+}
+
+function backToRecordsDashboard() {
+    document.getElementById('violationHistoryView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'block';
+}
+
+// ================= FUNDS LOGIC =================
 
 async function refreshFunds() {
     const icon = document.getElementById('refreshIcon');
@@ -475,7 +451,7 @@ async function deleteFundTransaction(id) {
     }
 }
 
-// ================= ATTENDANCE LOGIC (Existing) =================
+// ================= ATTENDANCE LOGIC =================
 async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     const selectedDate = document.getElementById('viewDate').value;
@@ -647,4 +623,3 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
-
