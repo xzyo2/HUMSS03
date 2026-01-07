@@ -10,31 +10,41 @@ const pool = mysql.createPool({
 });
 
 export default async function handler(req, res) {
-    const ADMIN_PASS = process.env.ADMIN_PASSWORD; // Secure password from Vercel
+    const ADMIN_PASS = process.env.ADMIN_PASSWORD;
 
     try {
-        // GET: Fetch records
         if (req.method === 'GET') {
             const [rows] = await pool.query('SELECT * FROM attendance_records ORDER BY date DESC, student_name ASC');
             return res.status(200).json(rows);
         }
 
-        // POST: Handle Login Check AND Saving Records
         if (req.method === 'POST') {
-            const { action, records, password } = req.body;
+            const { action, records, password, date } = req.body;
 
             // 1. Security Check
             if (password !== ADMIN_PASS) {
                 return res.status(401).json({ error: 'Wrong Password' });
             }
 
-            // 2. If this is just a Login Check (unlocking the modal)
+            // 2. Login Check
             if (action === 'login') {
                 return res.status(200).json({ success: true });
             }
 
-            // 3. If this is Saving Records
-            if (records && records.length > 0) {
+            // 3. Delete Logic (Wipe a date)
+            if (action === 'delete') {
+                if (!date) return res.status(400).json({ error: 'Date required' });
+                await pool.execute('DELETE FROM attendance_records WHERE date = ?', [date]);
+                return res.status(200).json({ message: 'Deleted' });
+            }
+
+            // 4. Save Logic (Overwrite/Edit)
+            if (action === 'save' && records && records.length > 0) {
+                // Step A: Wipe existing data for this date to prevent duplicates
+                const targetDate = records[0].date;
+                await pool.execute('DELETE FROM attendance_records WHERE date = ?', [targetDate]);
+
+                // Step B: Insert new data
                 for (const rec of records) {
                     await pool.execute(
                         'INSERT INTO attendance_records (student_name, date, status) VALUES (?, ?, ?)',
