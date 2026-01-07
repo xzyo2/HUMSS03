@@ -167,48 +167,60 @@ async function verifyAdmin() {
 
 // ================= RECORDS LOGIC =================
 
+// Global variable for raw data
+let cachedViolationData = []; 
+
+// Updated loadRecords
 async function loadRecords() {
     const container = document.getElementById('recordsList');
     const filter = document.getElementById('recordSearchBar').value.toLowerCase();
     
-    // If not searching, and empty, show loading
     if(container.innerHTML === '') container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Loading records...</div>';
 
     try {
         const res = await fetch('/api/records');
         const violations = await res.json();
         
-        // Process Data: Count violations per student
-        // 1. Create a map of all students with 0 violations
+        cachedViolationData = violations; // Save raw data for Admin View
+        
+        // Count violations
         let studentMap = {};
-        CLASS_LIST.forEach(name => {
-            studentMap[name] = 0;
-        });
+        CLASS_LIST.forEach(name => { studentMap[name] = 0; });
 
-        // 2. Add counts from DB
         violations.forEach(v => {
             if(studentMap.hasOwnProperty(v.student_name)) {
                 studentMap[v.student_name]++;
             } else {
-                // If name in DB isn't in CLASS_LIST (typo?), add it anyway
                 studentMap[v.student_name] = 1;
             }
         });
 
-        // 3. Convert to Array and Sort (High to Low)
+        // Sort
         let sortedStudents = Object.keys(studentMap).map(name => {
             return { name: name, count: studentMap[name] };
         }).sort((a, b) => b.count - a.count);
 
-        // 4. Render
+        // Render
         container.innerHTML = '';
         let hasResults = false;
 
         sortedStudents.forEach(s => {
             if(s.name.toLowerCase().includes(filter)) {
                 hasResults = true;
+                
+                // ADMIN FEATURE: Make card clickable
+                let clickAction = '';
+                let cursorStyle = '';
+                let hoverTitle = '';
+                
+                if (currentUserRole === 'admin') {
+                    clickAction = `onclick="viewStudentHistory('${s.name}')"`;
+                    cursorStyle = 'cursor: pointer;';
+                    hoverTitle = 'title="Click to view details"';
+                }
+
                 const html = `
-                    <div class="record-card">
+                    <div class="record-card" ${clickAction} ${hoverTitle} style="${cursorStyle}">
                         <div class="r-info">
                             <h3>${s.name}</h3>
                             <div class="privacy-text">Due to privacy reasons, reason for violation will not be set public. Message any classroom officer.</div>
@@ -220,14 +232,61 @@ async function loadRecords() {
             }
         });
 
-        if(!hasResults) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No student found.</div>';
-        }
+        if(!hasResults) container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">No student found.</div>';
 
     } catch (e) {
         console.error(e);
         container.innerHTML = '<div style="text-align:center; color:var(--danger);">Error loading records.</div>';
     }
+}
+
+// --- NEW FUNCTIONS FOR HISTORY VIEW ---
+
+function viewStudentHistory(name) {
+    if (currentUserRole !== 'admin') return;
+
+    // 1. Open Modal & Show History View
+    document.getElementById('adminModal').style.display = 'block';
+    
+    // Hide other views
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('logoutView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'none'; // Hide "Give Violation"
+    
+    // Show History View
+    document.getElementById('violationHistoryView').style.display = 'block';
+    
+    // 2. Populate Data
+    document.getElementById('historyStudentName').textContent = name;
+    const historyContainer = document.getElementById('historyList');
+    historyContainer.innerHTML = '';
+
+    // Filter violations for this student
+    const studentViolations = cachedViolationData.filter(v => v.student_name === name);
+
+    if (studentViolations.length === 0) {
+        historyContainer.innerHTML = '<div style="text-align:center; color:#888; padding:20px;">Clean Record. No violations.</div>';
+    } else {
+        // Sort by newest first
+        studentViolations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        studentViolations.forEach(v => {
+            const date = new Date(v.created_at).toLocaleString(); // Date & Time
+            const html = `
+                <div class="history-item">
+                    <span class="history-date">${date}</span>
+                    <div class="history-reason">${v.violation_reason}</div>
+                </div>
+            `;
+            historyContainer.insertAdjacentHTML('beforeend', html);
+        });
+    }
+}
+
+function backToRecordsDashboard() {
+    // Switch back to the "Give Violation" main screen
+    document.getElementById('violationHistoryView').style.display = 'none';
+    document.getElementById('recordsDashboardView').style.display = 'block';
 }
 
 function openRecordsEditor() {
@@ -588,3 +647,4 @@ function showToast(message, type = 'success') {
     container.appendChild(toast);
     setTimeout(() => { toast.remove(); }, 3200);
 }
+
