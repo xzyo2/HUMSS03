@@ -47,7 +47,6 @@
         <div class="glass-card">
             <div class="header-row">
                 <h2><i class="fas fa-book"></i> Attendance</h2>
-                
                 <button id="attendanceAdminActionBtn" class="action-btn-small" onclick="openAttendanceEditor()" style="display:none;">
                     <i class="fas fa-edit"></i> Create / Edit
                 </button>
@@ -62,6 +61,7 @@
                 <div class="input-group">
                     <label>Search Name:</label>
                     <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
                         <input type="text" id="searchBar" placeholder="Filter student..." onkeyup="filterAttendance()">
                     </div>
                 </div>
@@ -211,6 +211,14 @@
                 <textarea id="violationReason" rows="4" style="width:100%; padding:12px; background:#111827; border:1px solid var(--glass-border); border-radius:8px; color:white; outline:none; font-family:inherit; margin-bottom:15px;" placeholder="Describe the violation..."></textarea>
 
                 <button class="action-btn" onclick="submitViolation()">Submit Violation</button>
+            </div>
+
+            <div id="violationHistoryView" style="display:none;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                    <button onclick="backToRecordsDashboard()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i class="fas fa-arrow-left"></i></button>
+                    <h3 style="margin:0;" id="historyStudentName">Student Name</h3>
+                </div>
+                <div id="historyList" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div>
             </div>
 
         </div>
