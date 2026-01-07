@@ -47,7 +47,11 @@
         <div class="glass-card">
             <div class="header-row">
                 <h2><i class="fas fa-book"></i> Attendance</h2>
-                </div>
+                
+                <button id="attendanceAdminActionBtn" class="action-btn-small" onclick="openAttendanceEditor()" style="display:none;">
+                    <i class="fas fa-edit"></i> Create / Edit
+                </button>
+            </div>
             
             <div class="controls-grid">
                 <div class="input-group">
@@ -117,17 +121,11 @@
             </div>
 
             <div id="dashboardView" style="display:none;">
-                <div class="header-row">
-                    <h3 style="margin:0">Manage Records</h3>
-                    <button class="delete-icon-btn" onclick="deleteDateRecords()" title="Delete all records for this date">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                <h3 style="margin-top:0">Manage Records</h3>
 
-                <p class="hint-text">Select date to Add or Edit records:</p>
-                
+                <p class="hint-text">Editing Date:</p>
                 <div class="date-picker-wrapper" style="margin-bottom: 15px;">
-                    <input type="date" id="adminDate" onchange="validateSchoolDay(this)">
+                    <input type="date" id="adminDate" onchange="syncCheckboxesWithDate()">
                 </div>
                 <p id="dateWarning" class="warning-text"></p>
 
@@ -139,7 +137,13 @@
                 <div class="student-checklist" id="studentChecklist">
                     </div>
                 
-                <button id="saveBtn" class="action-btn" onclick="submitAttendance()">Save Records</button>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="saveBtn" class="action-btn" style="flex: 2;" onclick="submitAttendance()">Save Records</button>
+                    
+                    <button class="delete-icon-btn-large" style="flex: 1;" onclick="deleteDateRecords()" title="Delete entire date">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
