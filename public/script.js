@@ -4,7 +4,7 @@ const CLASS_LIST = [
     "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
 ];
 
-let cachedAttendanceData = []; // Store data globally for the "Edit" feature
+let cachedAttendanceData = []; 
 let tempPassword = "";
 
 // --- Initialization ---
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if(window.location.hash === '#attendance') loadAttendance();
     
-    // Load student list into modal immediately (unchecked by default)
+    // Attempt to load list on startup, but we will force it again later
     loadStudentChecklist(); 
 });
 
@@ -40,7 +40,6 @@ function showSection(id) {
         navButtons[1].classList.add('active');
         loadAttendance();
     }
-    // ... other sections
     if(id === 'funds') navButtons[2].classList.add('active');
     if(id === 'records') navButtons[3].classList.add('active');
     if(id === 'birthdays') navButtons[4].classList.add('active');
@@ -55,11 +54,9 @@ async function loadAttendance() {
     tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:20px;">Loading records...</td></tr>';
 
     try {
-        // Fetch fresh data
         const res = await fetch('/api/attendance');
-        cachedAttendanceData = await res.json(); // Save to global variable
+        cachedAttendanceData = await res.json(); 
         
-        // Filter for display
         const dailyRecords = cachedAttendanceData.filter(rec => rec.date.startsWith(selectedDate));
         
         tbody.innerHTML = '';
@@ -81,15 +78,12 @@ async function loadAttendance() {
 
 // --- Admin System Logic ---
 
-// 1. Toggle Login Modal (Top Right Button)
 function toggleAdminModal() {
-    // If already logged in, just tell the user (or we could offer logout)
     if (tempPassword) {
         showToast("You are already logged in.", "success");
         return; 
     }
     
-    // Open Login Modal
     const modal = document.getElementById('adminModal');
     if (modal.style.display === 'block') {
         closeAdminModal();
@@ -104,7 +98,6 @@ function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
 }
 
-// 2. Verify Password
 async function verifyAdmin() {
     const pass = document.getElementById('adminPass').value;
     const err = document.getElementById('loginError');
@@ -122,8 +115,6 @@ async function verifyAdmin() {
 
         if (res.ok) {
             tempPassword = pass; 
-            
-            // UX: Close modal, show "Create/Edit" button, Change Lock Icon
             closeAdminModal();
             document.getElementById('attendanceAdminActionBtn').style.display = 'block';
             
@@ -142,7 +133,7 @@ async function verifyAdmin() {
     }
 }
 
-// 3. Open Dashboard (Triggered by "Create/Edit" button)
+// --- KEY FIX: Force List Load Here ---
 function openAttendanceEditor() {
     const modal = document.getElementById('adminModal');
     modal.style.display = 'block';
@@ -150,18 +141,22 @@ function openAttendanceEditor() {
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
     
-    // Sync the admin date with what the user was looking at
+    // 1. Force the student list to build EVERY time this opens
+    loadStudentChecklist();
+
+    // 2. Sync date
     const viewDate = document.getElementById('viewDate').value;
     const adminDateInput = document.getElementById('adminDate');
     
     if (viewDate) {
         adminDateInput.value = viewDate;
-        syncCheckboxesWithDate(); // Load existing data for that date
     }
+    
+    // 3. Load checks for that date
+    syncCheckboxesWithDate();
     validateSchoolDay(adminDateInput);
 }
 
-// 4. Pre-fill Logic (The "Edit" Feature)
 function syncCheckboxesWithDate() {
     const targetDate = document.getElementById('adminDate').value;
     validateSchoolDay(document.getElementById('adminDate'));
@@ -172,24 +167,29 @@ function syncCheckboxesWithDate() {
 
     if (!targetDate || cachedAttendanceData.length === 0) return;
 
-    // Filter our cached data for this specific date
-    // Note: Data format from API is YYYY-MM-DDT... so we match start
     const recordsForDate = cachedAttendanceData.filter(rec => rec.date.startsWith(targetDate));
 
-    // If records exist, update checkboxes
     if (recordsForDate.length > 0) {
         checkboxes.forEach(box => {
             const studentName = box.value;
-            // Find this student in the records
             const record = recordsForDate.find(r => r.student_name === studentName);
-            
-            // If found and status is Absent, check the box
             if (record && record.status === 'Absent') {
                 box.checked = true;
             }
         });
         showToast("Loaded existing records for editing", "success");
     }
+}
+
+function loadStudentChecklist() {
+    const container = document.getElementById('studentChecklist');
+    container.innerHTML = ''; // Clear existing to prevent duplicates
+    
+    CLASS_LIST.forEach(name => {
+        // We use innerHTML += to append. 
+        const itemHtml = `<div class="checklist-item"><label style="display:flex; align-items:center; width:100%; cursor:pointer;"><input type="checkbox" value="${name}" class="absent-checkbox"> ${name}</label></div>`;
+        container.insertAdjacentHTML('beforeend', itemHtml);
+    });
 }
 
 // --- Submit & Delete ---
@@ -225,9 +225,8 @@ async function submitAttendance() {
         if (res.ok) {
             showToast("Records saved successfully!", "success");
             closeAdminModal();
-            // Refresh main view
             document.getElementById('viewDate').value = date;
-            loadAttendance(); // This will also update our cachedAttendanceData
+            loadAttendance(); 
         } else {
             showToast("Failed to save", "error");
         }
@@ -265,14 +264,6 @@ async function deleteDateRecords() {
 }
 
 // --- Helper Functions ---
-function loadStudentChecklist() {
-    const container = document.getElementById('studentChecklist');
-    container.innerHTML = '';
-    CLASS_LIST.forEach(name => {
-        container.innerHTML += `<div class="checklist-item"><label style="display:flex; align-items:center; width:100%; cursor:pointer;"><input type="checkbox" value="${name}" class="absent-checkbox"> ${name}</label></div>`;
-    });
-}
-
 function validateSchoolDay(input) {
     const date = new Date(input.value);
     const day = date.getDay(); 
@@ -281,7 +272,7 @@ function validateSchoolDay(input) {
     else warning.textContent = "";
 }
 
-function filterAttendance() { /* ... (Same as before) ... */ 
+function filterAttendance() {
     const input = document.getElementById('searchBar').value.toLowerCase();
     const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
     for (let row of rows) {
@@ -289,14 +280,14 @@ function filterAttendance() { /* ... (Same as before) ... */
         row.style.display = txt.toLowerCase().indexOf(input) > -1 ? "" : "none";
     }
 }
-function filterModalNames() { /* ... (Same as before) ... */ 
+function filterModalNames() {
     const filter = document.getElementById('modalSearch').value.toLowerCase();
     const items = document.getElementsByClassName('checklist-item');
     for (let item of items) {
         item.style.display = item.innerText.toLowerCase().includes(filter) ? "flex" : "none";
     }
 }
-function typeWriter() { /* ... (Same as before) ... */ 
+function typeWriter() {
     const target = document.querySelector('.typewriter');
     if (!target) return;
     const currentPhrase = phrases[phraseIndex];
@@ -307,7 +298,7 @@ function typeWriter() { /* ... (Same as before) ... */
     else if (isDeleting && charIndex === 0) { isDeleting = false; phraseIndex = (phraseIndex + 1) % phrases.length; }
     setTimeout(typeWriter, speed);
 }
-function showToast(message, type = 'success') { /* ... (Same as before) ... */
+function showToast(message, type = 'success') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
