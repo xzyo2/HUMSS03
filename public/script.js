@@ -128,14 +128,41 @@ function filterAttendance() {
 }
 
 // --- Admin System ---
-let tempPassword = "";
+let tempPassword = ""; // Stores password in RAM (clears on page refresh)
 
-function openAdminModal() { document.getElementById('adminModal').style.display = 'block'; }
+function toggleAdminModal() {
+    const modal = document.getElementById('adminModal');
+    
+    // If modal is already open, close it
+    if (modal.style.display === 'block') {
+        closeAdminModal();
+        return;
+    }
+
+    // Open Modal
+    modal.style.display = 'block';
+
+    // Smart Check: Are we already logged in?
+    if (tempPassword) {
+        // YES: Skip login screen, go straight to dashboard
+        document.getElementById('loginView').style.display = 'none';
+        document.getElementById('dashboardView').style.display = 'block';
+        
+        // Refresh the date/checklist
+        const adminDate = document.getElementById('adminDate');
+        if(!adminDate.value) adminDate.value = START_DATE;
+        validateSchoolDay(adminDate);
+    } else {
+        // NO: Show login screen
+        document.getElementById('loginView').style.display = 'block';
+        document.getElementById('dashboardView').style.display = 'none';
+    }
+}
+
 function closeAdminModal() {
     document.getElementById('adminModal').style.display = 'none';
-    document.getElementById('loginView').style.display = 'block';
-    document.getElementById('dashboardView').style.display = 'none';
-    tempPassword = "";
+    // WE REMOVED "tempPassword = """ HERE. 
+    // Now the password stays in memory until you refresh the page.
 }
 
 async function verifyAdmin() {
@@ -157,12 +184,20 @@ async function verifyAdmin() {
         });
 
         if (res.ok) {
-            tempPassword = pass; 
+            tempPassword = pass; // Store it!
+            
+            // UI Updates
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'block';
+            
+            // Change the Global Button to look "Unlocked"
+            const globalBtn = document.getElementById('globalAdminBtn');
+            globalBtn.classList.add('logged-in');
+            globalBtn.innerHTML = '<i class="fas fa-lock-open"></i>';
+            
             loadStudentChecklist();
             validateSchoolDay(document.getElementById('adminDate'));
-            showToast("Welcome back, Secretary", "success");
+            showToast("Logged in successfully", "success");
         } else {
             err.textContent = "Wrong Password";
         }
@@ -268,3 +303,4 @@ async function deleteDateRecords() {
         showToast("Server Error", "error");
     }
 }
+
