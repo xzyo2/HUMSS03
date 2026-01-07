@@ -156,22 +156,49 @@ function closeAdminModal() {
     tempPassword = "";
 }
 
-function verifyAdmin() {
+async function verifyAdmin() {
     const user = document.getElementById('adminUser').value;
     const pass = document.getElementById('adminPass').value;
     const err = document.getElementById('loginError');
+    const btn = document.querySelector('#loginView .action-btn');
 
-    if (user === 'secretary' && pass === '000secr_tary111') {
-        tempPassword = pass; 
-        document.getElementById('loginView').style.display = 'none';
-        document.getElementById('dashboardView').style.display = 'block';
-        loadStudentChecklist();
-        err.textContent = "";
-        
-        // Validate the default date immediately
-        validateSchoolDay(document.getElementById('adminDate'));
-    } else {
-        err.textContent = "Invalid Credentials";
+    // Simple username check (cosmetic)
+    if (user !== 'secretary') {
+        err.textContent = "Invalid Username";
+        return;
+    }
+
+    // Show loading state
+    btn.textContent = "Checking...";
+    err.textContent = "";
+
+    try {
+        // Ask the server: "Is this password right?"
+        const res = await fetch('/api/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'login', // Tell server we are just logging in
+                password: pass 
+            })
+        });
+
+        if (res.ok) {
+            // Success!
+            tempPassword = pass; // Keep it in memory only while using the app
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block';
+            loadStudentChecklist();
+            
+            // Validate the date immediately
+            validateSchoolDay(document.getElementById('adminDate'));
+        } else {
+            err.textContent = "Wrong Password";
+        }
+    } catch (e) {
+        err.textContent = "Connection Error";
+    } finally {
+        btn.textContent = "Unlock";
     }
 }
 
@@ -236,4 +263,5 @@ async function submitAttendance() {
         console.error(e);
         alert('Error saving data');
     }
+
 }
