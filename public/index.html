@@ -17,21 +17,11 @@
     </button>
 
     <nav class="glass-nav">
-        <button class="nav-btn active" onclick="showSection('home')">
-            <i class="fas fa-home"></i> <span>Home</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('attendance')">
-            <i class="fas fa-book"></i> <span>Attendance</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('funds')">
-            <i class="fas fa-wallet"></i> <span>Funds</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('records')">
-            <i class="fas fa-folder-open"></i> <span>Records</span>
-        </button>
-        <button class="nav-btn" onclick="showSection('birthdays')">
-            <i class="fas fa-birthday-cake"></i> <span>Birthdays</span>
-        </button>
+        <button class="nav-btn active" onclick="showSection('home')"><i class="fas fa-home"></i> <span>Home</span></button>
+        <button class="nav-btn" onclick="showSection('attendance')"><i class="fas fa-book"></i> <span>Attendance</span></button>
+        <button class="nav-btn" onclick="showSection('funds')"><i class="fas fa-wallet"></i> <span>Funds</span></button>
+        <button class="nav-btn" onclick="showSection('records')"><i class="fas fa-folder-open"></i> <span>Records</span></button>
+        <button class="nav-btn" onclick="showSection('birthdays')"><i class="fas fa-birthday-cake"></i> <span>Birthdays</span></button>
     </nav>
 
     <section id="home" class="page-section active-section">
@@ -47,7 +37,6 @@
         <div class="glass-card">
             <div class="header-row">
                 <h2><i class="fas fa-book"></i> Attendance</h2>
-                
                 <button id="attendanceAdminActionBtn" class="action-btn-small" onclick="openAttendanceEditor()" style="display:none;">
                     <i class="fas fa-edit"></i> Create / Edit
                 </button>
@@ -55,29 +44,17 @@
             
             <div class="controls-grid">
                 <div class="input-group">
-                    <label>Select Date:</label>
                     <input type="date" id="viewDate" onchange="loadAttendance()">
                 </div>
-                
                 <div class="input-group">
-                    <label>Search Name:</label>
-                    <div class="search-wrapper">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchBar" placeholder="Filter..." onkeyup="filterAttendance()">
-                    </div>
+                    <input type="text" id="searchBar" placeholder="Search..." onkeyup="filterAttendance()">
                 </div>
             </div>
 
             <div class="table-wrapper">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="attendanceTableBody">
-                        </tbody>
+                    <thead><tr><th>Name</th><th>Status</th></tr></thead>
+                    <tbody id="attendanceTableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -85,24 +62,27 @@
 
     <section id="funds" class="page-section">
         <div class="glass-card">
-            <div class="header-row"><h2><i class="fas fa-wallet"></i> Funds</h2></div>
-            <p style="text-align: center; color: #888;">Coming Soon</p>
+            <div class="header-row">
+                <h2><i class="fas fa-wallet"></i> Class Funds</h2>
+                <button id="fundsAdminActionBtn" class="action-btn-small" onclick="openFundsEditor()" style="display:none;">
+                    <i class="fas fa-plus"></i> New Transaction
+                </button>
+            </div>
+
+            <div class="funds-hero">
+                <div class="balance-label">Total Balance</div>
+                <div class="balance-amount">₱ <span id="totalFunds">0.00</span></div>
+            </div>
+
+            <div class="transaction-list" id="transactionList">
+                </div>
+            
+            <button id="loadMoreFundsBtn" class="load-more-btn" onclick="loadFunds(true)">Load More</button>
         </div>
     </section>
 
-    <section id="records" class="page-section">
-        <div class="glass-card">
-            <div class="header-row"><h2><i class="fas fa-folder-open"></i> Records</h2></div>
-            <p style="text-align: center; color: #888;">Coming Soon</p>
-        </div>
-    </section>
-
-    <section id="birthdays" class="page-section">
-        <div class="glass-card">
-            <div class="header-row"><h2><i class="fas fa-birthday-cake"></i> Birthdays</h2></div>
-            <p style="text-align: center; color: #888;">Coming Soon</p>
-        </div>
-    </section>
+    <section id="records" class="page-section"><div class="glass-card"><h2>Records Coming Soon</h2></div></section>
+    <section id="birthdays" class="page-section"><div class="glass-card"><h2>Birthdays Coming Soon</h2></div></section>
 
     <div id="adminModal" class="modal">
         <div class="modal-glass">
@@ -110,46 +90,51 @@
             
             <div id="loginView">
                 <h3>Restricted Access</h3>
-                <div style="margin-bottom: 15px;">
-                    <input type="text" id="adminUser" placeholder="Username">
-                </div>
-                <div>
-                    <input type="password" id="adminPass" placeholder="Password">
-                </div>
+                <input type="text" id="adminUser" placeholder="Username (secretary / Audit)" style="margin-bottom:10px;">
+                <input type="password" id="adminPass" placeholder="Password">
                 <button class="action-btn" onclick="verifyAdmin()">Unlock</button>
-                <p id="loginError" class="error-text" style="color: #ff4757; margin-top: 10px; font-size: 0.9rem;"></p>
+                <p id="loginError" class="error-text" style="color:var(--danger); margin-top:10px;"></p>
             </div>
 
             <div id="dashboardView" style="display:none;">
-                <h3 style="margin-top:0">Manage Records</h3>
-
-                <p class="hint-text">Editing Date:</p>
-                <div class="date-picker-wrapper" style="margin-bottom: 15px;">
-                    <input type="date" id="adminDate" onchange="syncCheckboxesWithDate()">
-                </div>
-                <p id="dateWarning" class="warning-text"></p>
-
-                <div class="search-wrapper" style="margin-bottom: 15px;">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="modalSearch" placeholder="Find student..." onkeyup="filterModalNames()">
-                </div>
-                
-                <div class="student-checklist" id="studentChecklist">
-                    </div>
-                
+                <h3>Manage Attendance</h3>
+                <input type="date" id="adminDate" onchange="syncCheckboxesWithDate()" style="margin-bottom:15px;">
+                <input type="text" id="modalSearch" placeholder="Find student..." onkeyup="filterModalNames()">
+                <div class="student-checklist" id="studentChecklist" style="margin-top:10px; max-height:200px; overflow-y:auto;"></div>
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
                     <button id="saveBtn" class="action-btn" style="flex: 2;" onclick="submitAttendance()">Save Records</button>
-                    
-                    <button class="delete-icon-btn-large" style="flex: 1;" onclick="deleteDateRecords()" title="Delete entire date">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <button class="action-btn" style="flex: 1; background:rgba(255,82,82,0.2); color:var(--danger);" onclick="deleteDateRecords()"><i class="fas fa-trash"></i></button>
                 </div>
+            </div>
+
+            <div id="fundsDashboardView" style="display:none;">
+                <h3>New Transaction</h3>
+                <label style="font-size:0.8rem; color:#888;">Title</label>
+                <input type="text" id="fundTitle" placeholder="e.g. Photocopy Paper" style="margin-bottom:10px;">
+                
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8rem; color:#888;">Amount</label>
+                        <input type="number" id="fundAmount" placeholder="0.00">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.8rem; color:#888;">Type</label>
+                        <select id="fundType">
+                            <option value="expense">Expense (-)</option>
+                            <option value="income">Income (+)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label style="font-size:0.8rem; color:#888;">Date</label>
+                <input type="date" id="fundDate">
+
+                <button id="saveFundBtn" class="action-btn" onclick="submitTransaction()">Save Transaction</button>
             </div>
         </div>
     </div>
 
     <div id="toast-container"></div>
-
     <script src="script.js"></script>
 </body>
 </html>
