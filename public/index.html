@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>03 Officers | Section Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="gradient-blob"></div>
+
+    <nav class="glass-nav">
+        <button class="nav-btn active" onclick="showSection('home')">
+            <i class="fas fa-home"></i> <span>Home</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('attendance')">
+    <i class="fas fa-book"></i> <span>Attendance</span>
+</button>
+        <button class="nav-btn" onclick="showSection('funds')">
+            <i class="fas fa-wallet"></i> <span>Funds</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('records')">
+            <i class="fas fa-folder-open"></i> <span>Records</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('birthdays')">
+            <i class="fas fa-birthday-cake"></i> <span>Birthdays</span>
+        </button>
+    </nav>
+
+    <section id="home" class="page-section active-section">
+        <div class="hero-content">
+            <div class="typewriter-container">
+                <h1><span class="typewriter"></span><span class="cursor">|</span></h1>
+            </div>
+        </div>
+        <p class="footer-credit">Made by 03 Officers</p>
+    </section>
+
+    <section id="attendance" class="page-section">
+        <div class="glass-card">
+<div class="header-row">
+    <h2><i class="fas fa-book"></i> Attendance</h2>
+    <button id="adminBtn" onclick="openAdminModal()"><i class="fas fa-lock"></i> Admin</button>
+</div>
+            
+            <div class="controls-grid">
+                <div class="input-group">
+                    <label>Select Date:</label>
+                    <input type="date" id="viewDate" onchange="loadAttendance()">
+                </div>
+                
+                <div class="input-group">
+                    <label>Search Name:</label>
+                    <div class="search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchBar" placeholder="Filter..." onkeyup="filterAttendance()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="funds" class="page-section">
+        <div class="glass-card">
+            <div class="header-row"><h2><i class="fas fa-wallet"></i> Funds</h2></div>
+            <p style="text-align: center; color: #888;">Coming Soon</p>
+        </div>
+    </section>
+
+    <section id="records" class="page-section">
+        <div class="glass-card">
+            <div class="header-row"><h2><i class="fas fa-folder-open"></i> Records</h2></div>
+            <p style="text-align: center; color: #888;">Coming Soon</p>
+        </div>
+    </section>
+
+    <section id="birthdays" class="page-section">
+        <div class="glass-card">
+            <div class="header-row"><h2><i class="fas fa-birthday-cake"></i> Birthdays</h2></div>
+            <p style="text-align: center; color: #888;">Coming Soon</p>
+        </div>
+    </section>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-glass">
+            <span class="close" onclick="closeAdminModal()">&times;</span>
+            
+            <div id="loginView">
+                <h3>Restricted Access</h3>
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="adminUser" placeholder="Username">
+                </div>
+                <div>
+                    <input type="password" id="adminPass" placeholder="Password">
+                </div>
+                <button class="action-btn" onclick="verifyAdmin()">Unlock</button>
+                <p id="loginError" class="error-text" style="color: #ff4757; margin-top: 10px; font-size: 0.9rem;"></p>
+            </div>
+
+            <div id="dashboardView" style="display:none;">
+                <h3>Mark Absences</h3>
+                <p class="hint-text">Select date to mark records for:</p>
+                
+                <div class="date-picker-wrapper" style="margin-bottom: 15px;">
+                    <input type="date" id="adminDate" onchange="validateSchoolDay(this)">
+                </div>
+                <p id="dateWarning" class="warning-text"></p>
+
+                <div class="search-wrapper" style="margin-bottom: 15px;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="modalSearch" placeholder="Find student..." onkeyup="filterModalNames()">
+                </div>
+                
+                <div class="student-checklist" id="studentChecklist">
+                    </div>
+                
+                <button class="action-btn" onclick="submitAttendance()">Save Records</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
