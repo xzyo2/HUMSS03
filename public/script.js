@@ -4,35 +4,30 @@ const CLASS_LIST = [
     "Alcantara, Adrian", "Añis, Troy", "Arizobal, Mark", "Armada, Rhyanna", "Belleza, Brent", "Benito, Nasheia", "Bou, Mark", "Bra, John", "Buccat, Cristine", "Cabanilla, Carl", "Caldozo, Zymone", "Calinao, Charleen", "Cardinal, Clarisse", "Clamor, John", "Colango, Chesca", "Collado, Gilby", "Dañas, Princess", "Dawis, Jomel", "De Guzman, Arquin", "Decena, Angelo", "Dela Cruz, Rain", "Dugos, Denise", "Estañol, Jericho", "Estoesta, Lorainne", "Fajutnao, Nikki", "Faminial, Miguel", "Gamel, Exequiel", "Garcia, Clint", "Lavarrete, Djhinlee", "Loyola, Princess", "Macaraan, Johanna", "Maglente, Tifanny", "Malabanan, Vidette", "Mendez, Rosselle", "Montecillo, Jericho", "Paglinawan, Raina", "Panganiban, Kim", "Pascua, Santy", "Perea, Lance", "Quito, Ma. Eraiza", "Reyes, Roseyhellyn", "Rivera, Christine", "Rodriguez, John", "Rosales, Ann", "Tadena, Faye", "Terrible, Gabriel", "Tito, Natalie", "Villanueva, Ford", "Villanueva, Mallory", "Miguel, Hannah"
 ];
 
-// --- Typewriter Config ---
 const phrases = ["Best section known to man", "Worst section known to man"];
 let phraseIndex = 0, charIndex = 0, isDeleting = false;
 
-// --- State ---
 let cachedAttendanceData = []; 
 let fundsPage = 1;
-let currentUserRole = null; // 'secretary' or 'treasurer'
+let currentUserRole = null; 
 let sessionPassword = "";
 
-// --- Initialization ---
+// --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
     typeWriter();
 
-    // Default Dates
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('viewDate').value = START_DATE; 
     document.getElementById('adminDate').value = START_DATE;
     if(document.getElementById('fundDate')) document.getElementById('fundDate').value = today;
 
-    // Load Hash
     if(window.location.hash === '#attendance') loadAttendance();
     if(window.location.hash === '#funds') loadFunds();
     
-    // Pre-load checklist
     loadStudentChecklist(); 
 });
 
-// --- Navigation ---
+// --- Nav ---
 function showSection(id) {
     document.querySelectorAll('.page-section').forEach(sec => {
         sec.classList.remove('active-section');
@@ -44,12 +39,10 @@ function showSection(id) {
     if(id === 'home') target.style.display = 'flex';
     target.classList.add('active-section');
     
-    // Highlight Button
     const map = { 'home': 0, 'attendance': 1, 'funds': 2, 'records': 3, 'birthdays': 4 };
     const navButtons = document.querySelectorAll('.nav-btn');
     if(navButtons[map[id]]) navButtons[map[id]].classList.add('active');
 
-    // Section Logic
     if(id === 'attendance') loadAttendance();
     if(id === 'funds') { fundsPage = 1; loadFunds(); }
 }
@@ -58,17 +51,14 @@ function showSection(id) {
 
 function toggleAdminModal() {
     const modal = document.getElementById('adminModal');
-    
     if (modal.style.display === 'none' || modal.style.display === '') {
         modal.style.display = 'block';
         if (sessionPassword) {
-            // Logged In View
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('logoutView').style.display = 'block';
             document.getElementById('dashboardView').style.display = 'none';
             document.getElementById('fundsDashboardView').style.display = 'none';
         } else {
-            // Logged Out View
             document.getElementById('loginView').style.display = 'block';
             document.getElementById('logoutView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'none';
@@ -85,10 +75,8 @@ function logout() {
     sessionPassword = "";
     currentUserRole = null;
     
-    // 1. Reset Theme (Default Blue)
     document.body.classList.remove('theme-pink');
     
-    // 2. Reset UI
     const globalBtn = document.getElementById('globalAdminBtn');
     globalBtn.classList.remove('logged-in');
     globalBtn.innerHTML = '<i class="fas fa-lock"></i>';
@@ -99,7 +87,7 @@ function logout() {
     closeAdminModal();
     showToast("Logged out successfully", "success");
 
-    // 3. Refresh Funds if active (to hide delete buttons)
+    // Force refresh funds to remove buttons if viewing them
     if (window.location.hash === '#funds' || document.getElementById('funds').style.display === 'block') {
         fundsPage = 1;
         loadFunds(); 
@@ -137,17 +125,15 @@ async function verifyAdmin() {
             globalBtn.classList.add('logged-in');
             globalBtn.innerHTML = '<i class="fas fa-unlock"></i>';
 
-            // THEME LOGIC
+            // Theme & Buttons
             if (role === 'secretary') {
                 document.body.classList.add('theme-pink');
                 document.getElementById('attendanceAdminActionBtn').style.display = 'block';
             } else if (role === 'treasurer') {
                 document.body.classList.remove('theme-pink');
                 document.getElementById('fundsAdminActionBtn').style.display = 'block';
-            }
-
-            // Refresh Funds if active (to show delete buttons)
-            if (window.location.hash === '#funds' || document.getElementById('funds').style.display === 'block') {
+                
+                // FORCE REFRESH FUNDS to show delete buttons immediately
                 fundsPage = 1;
                 loadFunds(); 
             }
@@ -198,10 +184,10 @@ async function loadFunds(append = false) {
             const sign = t.type === 'income' ? '+' : '-';
             const colorClass = t.type === 'income' ? 'income' : 'expense';
             
-            // SHOW DELETE BUTTON ONLY IF AUDIT
+            // Delete Button Injection
             let deleteBtnHtml = '';
             if (currentUserRole === 'treasurer') {
-                deleteBtnHtml = `<button class="t-delete-btn" onclick="deleteFundTransaction(${t.id})" title="Delete Transaction"><i class="fas fa-times"></i></button>`;
+                deleteBtnHtml = `<button class="t-delete-btn" onclick="deleteFundTransaction(${t.id})" title="Delete"><i class="fas fa-times"></i></button>`;
             }
 
             const html = `
@@ -276,6 +262,7 @@ async function deleteFundTransaction(id) {
         });
         if(res.ok) {
             showToast("Transaction deleted", "success");
+            fundsPage = 1;
             loadFunds(false); 
         } else {
             showToast("Failed to delete", "error");
@@ -286,7 +273,6 @@ async function deleteFundTransaction(id) {
 }
 
 // ================= ATTENDANCE LOGIC =================
-
 async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     const selectedDate = document.getElementById('viewDate').value;
@@ -297,7 +283,6 @@ async function loadAttendance() {
     try {
         const res = await fetch('/api/attendance');
         cachedAttendanceData = await res.json(); 
-        
         const dailyRecords = cachedAttendanceData.filter(rec => rec.date.startsWith(selectedDate));
         
         tbody.innerHTML = '';
@@ -326,11 +311,9 @@ function openAttendanceEditor() {
     document.getElementById('fundsDashboardView').style.display = 'none';
     document.getElementById('dashboardView').style.display = 'block';
     
-    loadStudentChecklist(); // Force reload
-
+    loadStudentChecklist(); 
     const viewDate = document.getElementById('viewDate').value;
     if (viewDate) document.getElementById('adminDate').value = viewDate;
-    
     syncCheckboxesWithDate();
 }
 
@@ -340,7 +323,6 @@ function syncCheckboxesWithDate() {
     checkboxes.forEach(box => box.checked = false);
 
     if (!targetDate || cachedAttendanceData.length === 0) return;
-
     const recordsForDate = cachedAttendanceData.filter(rec => rec.date.startsWith(targetDate));
     if (recordsForDate.length > 0) {
         checkboxes.forEach(box => {
@@ -379,7 +361,6 @@ async function submitAttendance() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'save', records: records, password: sessionPassword })
         });
-
         if (res.ok) {
             showToast("Records saved successfully!", "success");
             closeAdminModal();
