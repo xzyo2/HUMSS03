@@ -358,3 +358,48 @@ th { color: var(--accent); font-weight: 600; font-size: 0.9rem; }
 @media (max-width: 768px) {
     #toast-container { bottom: 80px; right: 20px; left: 20px; }
 }
+
+/* --- GLOBAL ADMIN BUTTON --- */
+#globalAdminBtn {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    z-index: 1100; /* Above everything */
+    background: rgba(15, 20, 30, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    width: 45px;
+    height: 45px;
+    border-radius: 50%; /* Circle shape */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#globalAdminBtn:hover {
+    color: white;
+    background: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+    transform: rotate(15deg);
+}
+
+/* Style for when logged in (Green/Blue Unlock) */
+#globalAdminBtn.logged-in {
+    border-color: var(--success);
+    color: var(--success);
+    background: rgba(0, 230, 118, 0.1);
+}
+
+/* Mobile Adjustment */
+@media (max-width: 768px) {
+    #globalAdminBtn {
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+    }
+}
