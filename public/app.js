@@ -118,7 +118,7 @@ async function submitAttendance() {
     if(!date) { showToast("Please select a date", "error"); return; }
     
     const saveBtn = document.getElementById('saveBtn');
-    saveBtn.innerHTML = '<i class="fas fa-spinner"></i> Saving...';
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; // Added spin animation too
     saveBtn.disabled = true;
 
     const checkboxes = document.querySelectorAll('.absent-checkbox');
@@ -131,17 +131,26 @@ async function submitAttendance() {
         const res = await fetch('/api/attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'save', records: records, password: sessionPassword })
+            // FIXED: Added "date: date" to the payload below
+            body: JSON.stringify({ 
+                action: 'save', 
+                records: records, 
+                date: date, 
+                password: sessionPassword 
+            })
         });
+
         if (res.ok) {
             showToast("Records saved successfully!", "success");
             closeAdminModal();
             document.getElementById('viewDate').value = date;
             loadAttendance(); 
         } else {
-            showToast("Failed to save", "error");
+            const data = await res.json();
+            showToast(data.error || "Failed to save", "error");
         }
     } catch (e) {
+        console.error(e);
         showToast("Server Error", "error");
     } finally {
         saveBtn.innerText = "Save Records";
