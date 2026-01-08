@@ -42,7 +42,6 @@ body {
 .gradient-blob {
     position: fixed;
     top: -50%; left: -50%; width: 200%; height: 200%;
-    /* Asymmetric Gradient */
     background: radial-gradient(circle at 60% 40%, rgba(59, 130, 246, 0.25) 0%, rgba(18, 20, 24, 0) 45%);
     z-index: -1;
     animation: rotateBlob 25s infinite linear;
@@ -74,7 +73,7 @@ button, input, select, .glass-card, h2 i, .nav-btn, .action-btn, .social-box {
     border-color: var(--success); color: var(--success); background: rgba(16, 185, 129, 0.1);
 }
 
-/* --- NAVIGATION --- */
+/* --- NAVIGATION (Desktop Default) --- */
 nav.glass-nav {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     background: #1f2937; 
@@ -101,23 +100,21 @@ nav.glass-nav {
     padding-bottom: 50px; 
 }
 .active-section { 
-    display: flex; /* Flex ensures proper layout for Home */
+    display: flex; 
     flex-direction: column;
     animation: fadeIn 0.4s ease; 
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* --- HOME SECTION LAYOUT (Fixed) --- */
+/* --- HOME SECTION LAYOUT --- */
 #home { 
     justify-content: center; 
     align-items: center; 
     text-align: center; 
-    /* Ensures items are spaced correctly within viewport */
     min-height: 100vh; 
 }
 
 .hero-content { 
-    /* Takes up remaining space, pushing Footer & Socials down */
     flex: 1; 
     display: flex; 
     align-items: center; 
@@ -129,28 +126,24 @@ nav.glass-nav {
 .cursor { color: var(--accent); animation: blink 1s step-end infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-/* --- SOCIAL BOX (Compact Style) --- */
+/* --- SOCIAL BOX --- */
 .social-box {
     position: relative;
     display: inline-flex; 
     align-items: center; 
     gap: 8px;
-    
-    /* Desktop Size */
     padding: 8px 20px; 
     border-radius: 50px; 
     font-size: 0.9rem; 
-    margin-bottom: 15px; /* Space above footer text */
-    
-    background: rgba(255, 255, 255, 0.05);
+    margin-bottom: 15px; 
+    background: rgba(30, 41, 59, 0.8);
     border: 1px solid var(--glass-border);
     color: var(--text-muted);
     text-decoration: none;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(10px);
 }
-
 .social-box:hover {
-    background: #1877F2; /* Facebook Blue */
+    background: #1877F2; 
     color: white;
     border-color: #1877F2;
     box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
@@ -161,7 +154,7 @@ nav.glass-nav {
     position: relative; 
     font-size: 0.75rem; 
     color: #555; 
-    margin-bottom: 20px; /* Space from bottom edge */
+    margin-bottom: 20px; 
 }
 
 /* --- CARDS & UI ELEMENTS --- */
@@ -267,7 +260,6 @@ nav.glass-nav {
     overflow: hidden;
 }
 
-/* 1. THE NEAREST BIRTHDAY (Big Box) */
 .b-card.rank-1 {
     grid-column: span 2;
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(255, 255, 255, 0.05));
@@ -284,7 +276,6 @@ nav.glass-nav {
     padding: 4px 10px; border-radius: 20px;
 }
 
-/* 2. & 3. (Medium Boxes) */
 .b-card.rank-2, .b-card.rank-3 {
     background: rgba(255, 255, 255, 0.05);
     padding: 25px 15px;
@@ -292,13 +283,9 @@ nav.glass-nav {
 .b-card.rank-2 h3, .b-card.rank-3 h3 { font-size: 1.1rem; }
 .b-card.rank-2 .b-countdown, .b-card.rank-3 .b-countdown { font-size: 1.1rem; font-weight: 600; color: white; }
 
-/* 4. & 5. (Small Boxes) */
-.b-card.rank-4, .b-card.rank-5 {
-    padding: 15px;
-}
+.b-card.rank-4, .b-card.rank-5 { padding: 15px; }
 .b-card.rank-4 h3, .b-card.rank-5 h3 { font-size: 0.95rem; }
 
-/* 6. Standard (Rest of the list) */
 .b-card.rank-standard {
     grid-column: span 2;
     flex-direction: row;
@@ -351,7 +338,7 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 .status-present { background: rgba(16, 185, 129, 0.1); color: var(--success); }
 .status-absent { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
-/* Toast */
+/* --- TOAST NOTIFICATIONS (Fixed: Top Right) --- */
 #toast-container { 
     position: fixed; 
     top: 90px; 
@@ -374,15 +361,17 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
     gap: 12px; 
     font-size: 0.85rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    pointer-events: auto; /* Re-enable clicks on the toast itself */
+    pointer-events: auto; 
     animation: slideIn 0.3s ease, fadeOut 0.5s ease 2.7s forwards; 
-}.toast.success { border-left-color: var(--success); } .toast.error { border-left-color: var(--danger); }
+}
+.toast.success { border-left-color: var(--success); } .toast.error { border-left-color: var(--danger); }
 .toast i { color: var(--accent); } .toast.success i { color: var(--success); } .toast.error i { color: var(--danger); }
 @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
 @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); } }
 .fa-spin { animation: fa-spin 1s infinite linear; }
 @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+/* --- MOBILE OPTIMIZATION (CRITICAL FIXES) --- */
 @media (max-width: 768px) {
     /* 1. Fix Home Layout Spacing */
     #home { 
@@ -395,24 +384,7 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
         padding-bottom: 140px; /* Ensure content isn't covered by nav */
     }
     
-    /* 2. Fix Facebook Button Size */
-    .social-box {
-        padding: 6px 14px; /* Smaller touch target */
-        font-size: 0.75rem; /* Smaller text */
-        gap: 6px;
-        margin-bottom: 10px;
-        background: rgba(30, 41, 59, 0.9); /* Darker so it's readable */
-    }
-    .social-box i { font-size: 0.9rem; }
-    
-    /* 3. Footer Adjustment */
-    .footer-credit { 
-        font-size: 0.65rem;
-        opacity: 0.6;
-        margin-bottom: 0;
-    }
-
-    /* 4. Nav Bar */
+    /* 2. Nav bar at bottom - FORCE ICON ONLY */
     nav.glass-nav { 
         top: auto; bottom: 20px; width: 92%; max-width: 400px; 
         justify-content: space-between; gap: 0; padding: 8px 12px;
@@ -420,7 +392,53 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
         background: rgba(31, 41, 55, 0.95);
         box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
+    .nav-btn { 
+        padding: 5px; 
+        flex-direction: column; 
+        justify-content: center; 
+        background: transparent !important; 
+        opacity: 0.5; 
+        width: 100%; /* Ensure click target is adequate */
+    }
+    .nav-btn.active { 
+        opacity: 1; 
+        color: var(--accent); 
+        background: transparent !important; /* Force transparent, remove pill */
+        transform: scale(1.1); 
+        box-shadow: none !important; 
+    }
+    .nav-btn i { 
+        font-size: 1.4rem; 
+        margin: 0; 
+    } 
+    /* Force HIDE Text on Mobile */
+    .nav-btn span { 
+        display: none !important; 
+    }
     
+    .controls-grid { grid-template-columns: 1fr; gap: 10px; }
+    .balance-amount { font-size: 2.5rem; }
+    
+    /* 3. Fix Facebook Button Size */
+    .social-box {
+        padding: 6px 14px; 
+        font-size: 0.75rem; 
+        gap: 6px;
+        margin-bottom: 10px;
+        background: rgba(30, 41, 59, 0.9);
+        /* Reset positioning just in case */
+        position: relative;
+        bottom: auto; left: auto; transform: none;
+    }
+    .social-box:hover { transform: translateY(-2px); }
+    
+    /* 4. Footer Adjustment */
+    .footer-credit { 
+        font-size: 0.65rem;
+        opacity: 0.6;
+        margin-bottom: 0;
+    }
+
     /* 5. Inputs & Modals */
     .modal-glass {
         width: 100%; max-width: 100%;
@@ -430,9 +448,13 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
         animation: slideUp 0.3s ease;
     }
     
+    .record-card { flex-direction: column; gap: 12px; }
+    .violation-badge { width: 100%; text-align: center; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
+    .birthday-grid { grid-template-columns: 1fr; }
+    .b-card.rank-1 { grid-column: span 1; }
+    .b-card.rank-standard { grid-column: span 1; }
+    
     input, select, textarea { font-size: 16px !important; }
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-
