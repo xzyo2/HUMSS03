@@ -1,4 +1,4 @@
-const phrases = ["Best section known to man", "Worst section known to man"];
+const phrases = ["Best section known to man", "Worst section known to man", "wow", "napakaingay na section"];
 let phraseIndex = 0, charIndex = 0, isDeleting = false;
 
 function typeWriter() {
