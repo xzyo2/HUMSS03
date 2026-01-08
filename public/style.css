@@ -92,12 +92,37 @@ nav.glass-nav {
     color: white; background: var(--accent); font-weight: 500;
 }
 
-/* --- SECTIONS --- */
-.page-section { display: none; min-height: 100vh; padding-top: 100px; padding-bottom: 50px; }
-.active-section { display: block; animation: fadeIn 0.4s ease; }
+.page-section { 
+    display: none; 
+    min-height: 100vh; 
+    padding-top: 100px; 
+    padding-bottom: 120px; /* Extra space at bottom so nav doesn't cover content */
+}
+.active-section { 
+    display: flex; /* Changed from block to flex for better layout control */
+    flex-direction: column;
+    animation: fadeIn 0.4s ease; 
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-#home { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+/* --- HOME SECTION LAYOUT FIX --- */
+#home { 
+    justify-content: center; 
+    align-items: center; 
+    text-align: center; 
+    /* This ensures content stretches to fill height */
+    height: 100vh; 
+}
+
+.hero-content { 
+    /* This pushes the header to the center, leaving space for footer at bottom */
+    flex: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    width: 100%;
+}
+
 .hero-content h1 { font-size: 3rem; font-weight: 700; margin: 0; color: white; }
 .cursor { color: var(--accent); animation: blink 1s step-end infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -483,31 +508,45 @@ nav.glass-nav {
 .hero-content h1 { font-size: 3rem; font-weight: 700; margin: 0; color: white; }
 .cursor { color: var(--accent); animation: blink 1s step-end infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-.footer-credit { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 0.75rem; color: #555; }
+.footer-credit { 
+    /* No longer absolute - sits at the very bottom of the flex container */
+    position: relative; 
+    margin-bottom: 20px; /* Lifts it up slightly */
+    font-size: 0.75rem; 
+    color: #555; 
+    width: 100%;
+}
 
-/* NEW: Social Box */
 .social-box {
-    position: absolute;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 24px;
-    background: rgba(255, 255, 255, 0.03);
+    /* No longer absolute - sits naturally above footer */
+    position: relative;
+    margin-bottom: 15px; /* Space between button and footer text */
+    
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px;
+    
+    /* Smaller Size */
+    padding: 6px 16px; 
+    border-radius: 20px; 
+    font-size: 0.8rem; 
+    
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
-    border-radius: 50px;
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.9rem;
     transition: 0.3s;
     backdrop-filter: blur(5px);
 }
+
+.social-box i { font-size: 1rem; }
+
 .social-box:hover {
-    background: #1877F2; /* Facebook Blue */
+    background: #1877F2; 
     color: white;
     border-color: #1877F2;
     box-shadow: 0 4px 15px rgba(24, 119, 242, 0.4);
-    transform: translateX(-50%) translateY(-3px);
+    transform: translateY(-2px);
 }
 
 .glass-card {
@@ -750,4 +789,12 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+@media (max-width: 768px) {
+    /* Ensure the footer clears the bottom navigation bar */
+    .footer-credit { margin-bottom: 100px; }
+    
+    /* Make home content center properly on mobile */
+    #home { padding-top: 0; }
+}
 
