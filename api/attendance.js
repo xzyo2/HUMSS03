@@ -10,53 +10,50 @@ const pool = mysql.createPool({
 });
 
 export default async function handler(req, res) {
-    const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+    const SEC_PASS = process.env.SECRETARY_PASSWORD;
+    const OP_PASS = process.env.OPERATOR_PASSWORD; 
 
     try {
         if (req.method === 'GET') {
-            const [rows] = await pool.query('SELECT * FROM attendance_records ORDER BY date DESC, student_name ASC');
+            const [rows] = await pool.query('SELECT * FROM student_attendance');
             return res.status(200).json(rows);
         }
 
         if (req.method === 'POST') {
-            const { action, records, password, date } = req.body;
-
-            // 1. Security Check
-            if (password !== ADMIN_PASS) {
-                return res.status(401).json({ error: 'Wrong Password' });
+            const { action, records, date, password } = req.body;
+            if (password !== SEC_PASS && password !== OP_PASS) {
+                return res.status(401).json({ error: 'Unauthorized' });
             }
 
-            // 2. Login Check
-            if (action === 'login') {
-                return res.status(200).json({ success: true });
+            if (action === 'login') return res.status(200).json({ success: true });
+
+            if (action === 'save') {
+                const connection = await pool.getConnection();
+                try {
+                    await connection.beginTransaction();
+                    await connection.execute('DELETE FROM student_attendance WHERE date = ?', [date]);
+                    for (const rec of records) {
+                        await connection.execute(
+                            'INSERT INTO student_attendance (student_name, date, status) VALUES (?, ?, ?)',
+                            [rec.name, rec.date, rec.status]
+                        );
+                    }
+                    await connection.commit();
+                    return res.status(200).json({ message: 'Saved' });
+                } catch (err) {
+                    await connection.rollback();
+                    throw err;
+                } finally {
+                    connection.release();
+                }
             }
 
-            // 3. Delete Logic (Wipe a date)
             if (action === 'delete') {
-                if (!date) return res.status(400).json({ error: 'Date required' });
-                await pool.execute('DELETE FROM attendance_records WHERE date = ?', [date]);
+                await pool.execute('DELETE FROM student_attendance WHERE date = ?', [date]);
                 return res.status(200).json({ message: 'Deleted' });
             }
-
-            // 4. Save Logic (Overwrite/Edit)
-            if (action === 'save' && records && records.length > 0) {
-                // Step A: Wipe existing data for this date to prevent duplicates
-                const targetDate = records[0].date;
-                await pool.execute('DELETE FROM attendance_records WHERE date = ?', [targetDate]);
-
-                // Step B: Insert new data
-                for (const rec of records) {
-                    await pool.execute(
-                        'INSERT INTO attendance_records (student_name, date, status) VALUES (?, ?, ?)',
-                        [rec.name, rec.date, rec.status]
-                    );
-                }
-                return res.status(200).json({ message: 'Saved' });
-            }
         }
-
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Server Error' });
+        return res.status(500).json({ error: error.message });
     }
 }
