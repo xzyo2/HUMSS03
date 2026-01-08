@@ -1,62 +1,12 @@
-// --- Configuration ---
+
 const START_DATE = "2026-01-12"; 
 
-// UPDATED CLASS LIST (Surname, Firstname only)
+
 const CLASS_LIST = [
-    "ALCANTARA, ADRIAN JAMES",
-    "AÑIS, TROY DHARON",
-    "ARIZOBAL, MARK JARHED",
-    "ARMADA, RHYANNA",
-    "BENITO, NASHEIA RHINOA ALYANNHA",
-    "BRA, JOHN DARYL",
-    "BUCCAT, CRISTINE",
-    "CABANILLA, CARL ANGELO",
-    "CALDOZO, ZYMONE ADAM",
-    "CALINAO, CHARLEEN FAITH",
-    "CARDINAL, CLARISSE ANGELA",
-    "CLAMOR, JOHN CEDRIC",
-    "COLANGO, CHESCA MAY",
-    "COLLADO, GILBY CLARK",
-    "DAÑAS, PRINCESS ANDREA",
-    "DE GUZMAN, ARQUIN",
-    "DECENA, ANGELO",
-    "DELA CRUZ, RAIN",
-    "DIEGO, JONALYN",
-    "DUGOS, DENISE",
-    "ESTAÑOL, JERICHO",
-    "ESTOESTA, LORAINNE",
-    "FAJUTNAO, NIKKI ROSE",
-    "FAMINIAL, MIGUEL ADRIAN",
-    "FERRER, ROSE ANN",
-    "GAMEL, EXEQUIEL",
-    "GARCIA, CLINT MATTHEW",
-    "LAVARRETE, DJHINLEE",
-    "LOYOLA, PRINCESS NICOLE",
-    "LUATON, RACHEL ANNE",
-    "MACARAAN, JOHANNA BRAINER",
-    "MAGLENTE, TIFANNY ROSE",
-    "MALABANAN, VIDETTE",
-    "MENDEZ, ROSSELLE",
-    "MIGUEL, HANNAH ROSE",
-    "MONTECILLO, JERICHO",
-    "PAGLINAWAN, RAINA JANE",
-    "PANGANIBAN, KIM RAIZA",
-    "PASCUA, SANTY MAY",
-    "PEREA, LANCE ORRICK",
-    "QUITO, MA. ERAIZA RHIEN",
-    "REYES, ROSEYHELLYN",
-    "RIVERA, CHRISTINE JOY",
-    "RODRIGUEZ, JOHN MARCUS",
-    "ROSALES, ANN FRANCINE",
-    "TADENA, FAYE ANGELEEN",
-    "TANILON, REYMARK",
-    "TERRIBLE, GABRIEL VINCENT",
-    "TITO, NATALIE JANE",
-    "VILLANUEVA, FORD GIBSON",
-    "VILLANUEVA, MALLORY"
+    "ALCANTARA, ADRIAN JAMES", "AÑIS, TROY DHARON", "ARIZOBAL, MARK JARHED", "ARMADA, RHYANNA", "BENITO, NASHEIA RHINOA ALYANNHA", "BRA, JOHN DARYL", "BUCCAT, CRISTINE", "CABANILLA, CARL ANGELO", "CALDOZO, ZYMONE ADAM", "CALINAO, CHARLEEN FAITH", "CARDINAL, CLARISSE ANGELA", "CLAMOR, JOHN CEDRIC", "COLANGO, CHESCA MAY", "COLLADO, GILBY CLARK", "DAÑAS, PRINCESS ANDREA", "DE GUZMAN, ARQUIN", "DECENA, ANGELO", "DELA CRUZ, RAIN", "DIEGO, JONALYN", "DUGOS, DENISE", "ESTAÑOL, JERICHO", "ESTOESTA, LORAINNE", "FAJUTNAO, NIKKI ROSE", "FAMINIAL, MIGUEL ADRIAN", "FERRER, ROSE ANN", "GAMEL, EXEQUIEL", "GARCIA, CLINT MATTHEW", "LAVARRETE, DJHINLEE", "LOYOLA, PRINCESS NICOLE", "LUATON, RACHEL ANNE", "MACARAAN, JOHANNA BRAINER", "MAGLENTE, TIFANNY ROSE", "MALABANAN, VIDETTE", "MENDEZ, ROSSELLE", "MIGUEL, HANNAH ROSE", "MONTECILLO, JERICHO", "PAGLINAWAN, RAINA JANE", "PANGANIBAN, KIM RAIZA", "PASCUA, SANTY MAY", "PEREA, LANCE ORRICK", "QUITO, MA. ERAIZA RHIEN", "REYES, ROSEYHELLYN", "RIVERA, CHRISTINE JOY", "RODRIGUEZ, JOHN MARCUS", "ROSALES, ANN FRANCINE", "TADENA, FAYE ANGELEEN", "TANILON, REYMARK", "TERRIBLE, GABRIEL VINCENT", "TITO, NATALIE JANE", "VILLANUEVA, FORD GIBSON", "VILLANUEVA, MALLORY"
 ];
 
-// UPDATED BIRTHDAY DATA
+
 const BIRTHDAY_DATA = [
     { name: "ALCANTARA, ADRIAN JAMES", date: "01-15" },
     { name: "ESTOESTA, LORAINNE", date: "01-19" },
@@ -100,7 +50,7 @@ const BIRTHDAY_DATA = [
 const phrases = ["Best section known to man", "Worst section known to man"];
 let phraseIndex = 0, charIndex = 0, isDeleting = false;
 
-// --- Global State ---
+
 let cachedAttendanceData = []; 
 let cachedViolationData = [];
 let fundsPage = 1;
@@ -402,7 +352,6 @@ async function loadRecords() {
             if(studentMap.hasOwnProperty(v.student_name)) {
                 studentMap[v.student_name]++;
             } else {
-                // Handle cases where name in DB isn't in CLASS_LIST
                 studentMap[v.student_name] = 1;
             }
         });
@@ -618,7 +567,7 @@ async function loadFunds(append = false) {
                         <span>${date}</span>
                     </div>
                     <div style="display:flex; align-items:center;">
-                        <div class="t-amount ${colorClass}">${sign} ₱${parseFloat(t.amount).toFixed(2)}</div>
+                        <div class="t-amount ${colorClass}">${sign} ₱${parseFloat(t.amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                         ${deleteBtnHtml}
                     </div>
                 </div>
@@ -835,7 +784,8 @@ function animateValue(id, start, end, duration) {
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = (progress * (end - start) + start).toFixed(2);
+        let current = progress * (end - start) + start;
+        obj.innerHTML = current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         if (progress < 1) window.requestAnimationFrame(step);
     };
     window.requestAnimationFrame(step);
