@@ -45,5 +45,7 @@ const BIRTHDAY_DATA = [
     { name: "COLANGO, CHESCA MAY", date: "11-13" },
     { name: "BUCCAT, CRISTINE", date: "12-03" },
     { name: "TERRIBLE, GABRIEL VINCENT", date: "12-07" },
-    { name: "DAÑAS, PRINCESS ANDREA", date: "05-28" }
+    { name: "DAÑAS, PRINCESS ANDREA", date: "05-28" },
+    { name: "DUGOS, DENISE", date: "04-24" }
+    
 ];
