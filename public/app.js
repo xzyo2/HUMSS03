@@ -493,7 +493,7 @@ async function deleteViolation(id, studentName) {
 }
 
 // ================= BIRTHDAYS LOGIC =================
-function loadBirthdays() {
+async function loadBirthdays() {
     const container = document.getElementById('birthdayGrid');
     container.innerHTML = '';
     
@@ -502,60 +502,155 @@ function loadBirthdays() {
     
     let processedBirthdays = [];
 
-    // Loop through ALL students in the class list
+    // 1. Process Real Students
     CLASS_LIST.forEach(studentName => {
         const bdayRecord = BIRTHDAY_DATA.find(b => b.name === studentName);
         if (bdayRecord) {
             const [month, day] = bdayRecord.date.split('-').map(Number);
             let nextBday = new Date(currentYear, month - 1, day);
-            if (nextBday < today && nextBday.getDate() !== today.getDate()) {
+            
+            // Reset time to midnight to ensure accurate day calculation
+            nextBday.setHours(0,0,0,0);
+            const todayMid = new Date();
+            todayMid.setHours(0,0,0,0);
+
+            if (nextBday < todayMid) {
                 nextBday.setFullYear(currentYear + 1);
             }
-            const diffMs = nextBday - today;
+            
+            const diffMs = nextBday - todayMid;
             const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-            const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
             
             processedBirthdays.push({
                 name: studentName,
                 displayDate: nextBday.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
-                diffDays: diffDays, diffHours: diffHours, isToday: diffDays === 0, hasData: true
+                diffDays: diffDays,
+                hasData: true
             });
         } else {
             processedBirthdays.push({
                 name: studentName, displayDate: "No birthday specified",
-                diffDays: 9999, diffHours: 9999, isToday: false, hasData: false
+                diffDays: 9999, hasData: false
             });
         }
     });
 
+    // 2. Inject TEST User if Debug is ON
+    if (typeof ENABLE_TEST_BIRTHDAY !== 'undefined' && ENABLE_TEST_BIRTHDAY) {
+        processedBirthdays.push({
+            name: "Test",
+            displayDate: "Today (Debug)",
+            diffDays: 0, // Force it to be today
+            hasData: true
+        });
+    }
+
+    // 3. Sort
     processedBirthdays.sort((a, b) => a.diffDays - b.diffDays);
 
-    processedBirthdays.forEach((b, index) => {
-        let rankClass = 'rank-standard';
-        if (b.hasData) {
-            if (index === 0) rankClass = 'rank-1';
-            else if (index === 1) rankClass = 'rank-2';
-            else if (index === 2) rankClass = 'rank-3';
-            else if (index === 3) rankClass = 'rank-4';
-            else if (index === 4) rankClass = 'rank-5';
-        }
-
-        let timeText = b.hasData ? `${b.diffDays} Days Left` : "--";
-        let timeClass = "";
-        if (b.isToday) { timeText = "🎂 Happening Today!"; timeClass = "time-red"; }
-        else if (b.diffHours < 12) { timeClass = "time-red"; }
-
+    // 4. Render
+    for (let index = 0; index < processedBirthdays.length; index++) {
+        const b = processedBirthdays[index];
         let html = '';
-        if (index === 0 && b.hasData) {
-            html = `<div class="b-card ${rankClass}"><h3>${b.name}</h3><div class="b-date">${b.displayDate}</div><div class="b-countdown ${timeClass}">${timeText}</div></div>`;
-        } else if (index < 5 && b.hasData) {
-            html = `<div class="b-card ${rankClass}"><h3>${b.name}</h3><div class="b-countdown ${timeClass}">${timeText}</div><div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div></div>`;
-        } else {
-            const dimStyle = !b.hasData ? 'opacity: 0.5;' : '';
-            html = `<div class="b-card ${rankClass}" style="${dimStyle}"><div class="b-info"><h3>${b.name}</h3><div class="b-date">${b.displayDate}</div></div><div class="b-countdown ${timeClass}">${timeText}</div></div>`;
+
+        // --- IS IT TODAY? (0 Days Left) ---
+        if (b.diffDays === 0 && b.hasData) {
+            // Fetch first name for the button text
+            const firstName = b.name.split(',')[1] ? b.name.split(',')[1].trim().split(' ')[0] : b.name;
+
+            // Define Buttons
+            const buttons = [
+                { id: 1, text: `Happy Birthday, ${firstName} 🎂` },
+                { id: 2, text: `More Days to Come! 🎈` },
+                { id: 3, text: `Another year, another win 🎉` }
+            ];
+
+            // Randomize Buttons
+            buttons.sort(() => Math.random() - 0.5);
+
+            // Fetch initial counts from DB
+            let counts = { 1: 0, 2: 0, 3: 0 };
+            try {
+                const res = await fetch(`/api/wishes?name=${encodeURIComponent(b.name)}`);
+                const data = await res.json();
+                data.forEach(row => counts[row.wish_id] = row.count);
+            } catch(e) { console.error("Error fetching wishes", e); }
+
+            // Generate Button HTML
+            let buttonsHtml = buttons.map(btn => `
+                <button class="wish-btn" onclick="sendWish(this, '${b.name}', ${btn.id})">
+                    ${btn.text} <span class="wish-count badge">${counts[btn.id]}</span>
+                </button>
+            `).join('');
+
+            // "Today!" Card Layout
+            html = `
+                <div class="b-card rank-1 birthday-today-card">
+                    <div class="confetti-bg"></div>
+                    <h3>${b.name}</h3>
+                    <div class="b-date">${b.displayDate}</div>
+                    <div class="b-countdown time-red" style="font-size: 2rem;">Today!</div>
+                    <div class="wish-buttons-container">
+                        ${buttonsHtml}
+                    </div>
+                </div>
+            `;
+        } 
+        // --- NORMAL LIST ---
+        else {
+            let rankClass = 'rank-standard';
+            if (b.hasData) {
+                if (index === 0) rankClass = 'rank-1'; // Logic: If someone is today, they take rank-1, otherwise nearest is rank-1
+                else if (index < 5) rankClass = `rank-${index + 1}`; // Simple fallback ranking
+            }
+
+            let timeText = b.hasData ? `${b.diffDays} Days Left` : "--";
+            let timeClass = "";
+            if (b.diffDays < 3) timeClass = "time-red";
+
+            // Standard HTML (same as before)
+            if (b.hasData && index === 0 && b.diffDays !== 0) {
+                 html = `<div class="b-card rank-1"><h3>${b.name}</h3><div class="b-date">${b.displayDate}</div><div class="b-countdown ${timeClass}">${timeText}</div></div>`;
+            } else if (b.hasData && index < 5) {
+                html = `<div class="b-card ${rankClass}"><h3>${b.name}</h3><div class="b-countdown ${timeClass}">${timeText}</div><div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div></div>`;
+            } else {
+                const dimStyle = !b.hasData ? 'opacity: 0.5;' : '';
+                html = `<div class="b-card rank-standard" style="${dimStyle}"><div class="b-info"><h3>${b.name}</h3><div class="b-date">${b.displayDate}</div></div><div class="b-countdown ${timeClass}">${timeText}</div></div>`;
+            }
         }
         container.insertAdjacentHTML('beforeend', html);
-    });
+    }
+}
+
+async function sendWish(btnElement, studentName, wishId) {
+    // 1. Optimistic UI Update
+    const countSpan = btnElement.querySelector('.wish-count');
+    let currentCount = parseInt(countSpan.innerText) || 0;
+    countSpan.innerText = currentCount + 1;
+    
+    // Add animation effect
+    btnElement.classList.add('clicked-pulse');
+    setTimeout(() => btnElement.classList.remove('clicked-pulse'), 300);
+
+    // 2. Send to Server
+    try {
+        const res = await fetch('/api/wishes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: studentName, wishId: wishId })
+        });
+        const data = await res.json();
+        
+        // 3. Sync with server truth
+        if (data.newCount) {
+            countSpan.innerText = data.newCount;
+        }
+    } catch (e) {
+        console.error("Failed to send wish");
+        // Revert on failure
+        countSpan.innerText = currentCount; 
+        showToast("Connection failed", "error");
+    }
 }
 
 
