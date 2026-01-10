@@ -483,12 +483,10 @@ async function deleteViolation(id, studentName) {
     }
 }
 
-// ================= BIRTHDAYS LOGIC =================
 async function loadBirthdays() {
     const container = document.getElementById('birthdayGrid');
     container.innerHTML = '';
     
-    // Clear previous polling
     if (birthdayLiveUpdateInterval) clearInterval(birthdayLiveUpdateInterval);
 
     const today = new Date();
@@ -520,6 +518,14 @@ async function loadBirthdays() {
                 diffDays: diffDays,
                 hasData: true
             });
+        } else {
+            // Students with no birthday data
+            processedBirthdays.push({
+                name: studentName, 
+                displayDate: "No birthday specified",
+                diffDays: 9999, // Push to end
+                hasData: false
+            });
         }
     });
 
@@ -540,7 +546,6 @@ async function loadBirthdays() {
     const upcomingBirthdays = processedBirthdays.filter(b => b.diffDays > 0 || !b.hasData);
 
     // --- RENDER TODAY ---
-    // Start Polling if there are birthdays today
     if (todaysBirthdays.length > 0) {
         birthdayLiveUpdateInterval = setInterval(() => updateLiveCounts(todaysBirthdays), 2000);
     }
@@ -553,7 +558,6 @@ async function loadBirthdays() {
             { id: 2, text: `More Days to Come! 🎈` },
             { id: 3, text: `Another year, another win 🎉` }
         ];
-        // Note: No random sort here to prevent jumping buttons
 
         let counts = { 1: 0, 2: 0, 3: 0 };
         try {
@@ -584,18 +588,18 @@ async function loadBirthdays() {
         container.insertAdjacentHTML('beforeend', html);
     }
 
-    // --- RENDER UPCOMING ---
+    // --- RENDER UPCOMING & NO DATA ---
     upcomingBirthdays.forEach((b, index) => {
         let rankClass = 'rank-standard';
         let badgeHtml = '';
         
         if (b.hasData) {
             if (index === 0) {
-                rankClass = 'rank-1'; // Rank 1 (Blue)
+                rankClass = 'rank-1'; 
                 badgeHtml = `<div class="upcoming-badge">🚀 Upcoming</div>`;
             } 
-            else if (index === 1) rankClass = 'rank-2'; // Rank 2 (Cyan)
-            else if (index === 2) rankClass = 'rank-3'; // Rank 3 (Emerald)
+            else if (index === 1) rankClass = 'rank-2'; 
+            else if (index === 2) rankClass = 'rank-3'; 
         }
 
         let timeText = b.hasData ? `${b.diffDays} Days Left` : "--";
@@ -603,27 +607,24 @@ async function loadBirthdays() {
 
         let html = '';
         
-        if (b.hasData && index === 0) {
+        // Upcoming 1, 2, 3
+        if (b.hasData && (index === 0 || index === 1 || index === 2)) {
              html = `
                 <div class="b-card ${rankClass}">
                     ${badgeHtml}
-                    <h3>${b.name}</h3>
-                    <div class="b-date">${b.displayDate}</div>
-                    <div class="b-countdown ${timeClass}">${timeText}</div>
-                </div>`;
-        } 
-        else if (b.hasData && (index === 1 || index === 2)) {
-             html = `
-                <div class="b-card ${rankClass}">
                     <h3>${b.name}</h3>
                     <div class="b-countdown ${timeClass}">${timeText}</div>
                     <div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div>
                 </div>`;
         } 
+        // Standard & No Data
         else {
-            const dimStyle = !b.hasData ? 'opacity: 0.5;' : '';
+            // Increased opacity to 0.7 so they are more visible
+            const dimStyle = !b.hasData ? 'opacity: 0.7;' : ''; 
+            const noDataClass = !b.hasData ? 'b-no-data' : '';
+            
             html = `
-                <div class="b-card rank-standard" style="${dimStyle}">
+                <div class="b-card rank-standard ${noDataClass}" style="${dimStyle}">
                     <div class="b-info">
                         <h3>${b.name}</h3>
                         <div class="b-date">${b.displayDate}</div>
@@ -635,7 +636,6 @@ async function loadBirthdays() {
     });
 }
 
-// Live Update Poller
 async function updateLiveCounts(todaysBirthdays) {
     for (let b of todaysBirthdays) {
         try {
@@ -647,13 +647,14 @@ async function updateLiveCounts(todaysBirthdays) {
                 const btn = document.getElementById(btnId);
                 if (btn) {
                     const countSpan = btn.querySelector('.wish-count');
-                    // Only update if changed (prevents flickering)
                     if (countSpan.innerText != row.count) {
                         countSpan.innerText = row.count;
+                        countSpan.style.transform = "scale(1.2)";
+                        setTimeout(() => countSpan.style.transform = "scale(1)", 200);
                     }
                 }
             });
-        } catch(e) {}
+        } catch(e) { console.error("Live update failed", e); }
     }
 }
 
@@ -661,10 +662,11 @@ function sendWish(btnElement, studentName, wishId) {
     const countSpan = btnElement.querySelector('.wish-count');
     let currentCount = parseInt(countSpan.innerText) || 0;
     
-    // Optimistic Update (No animation classes added here)
     countSpan.innerText = currentCount + 1;
     
-    // Fire & Forget
+    btnElement.classList.add('spam-pulse');
+    setTimeout(() => btnElement.classList.remove('spam-pulse'), 100);
+
     fetch('/api/wishes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -673,8 +675,6 @@ function sendWish(btnElement, studentName, wishId) {
         countSpan.innerText = currentCount;
     });
 }
-
-// Helpers
 function filterAttendance() {
     const input = document.getElementById('searchBar').value.toLowerCase();
     const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
