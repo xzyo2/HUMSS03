@@ -13,12 +13,13 @@
     --success: #10b981;
 }
 
-
+/* --- SECRETARY THEME (Matte Pink) --- */
 body.theme-pink {
     --accent: #ec4899; 
     --glass-bg: #2d1e25;
 }
 
+/* --- SCROLLBAR STABILITY --- */
 html { scrollbar-gutter: stable; }
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
@@ -72,7 +73,7 @@ button, input, select, .glass-card, h2 i, .nav-btn, .action-btn, .social-box {
     border-color: var(--success); color: var(--success); background: rgba(16, 185, 129, 0.1);
 }
 
-/* --- NAVIGATION (Desktop Default) --- */
+/* --- NAVIGATION (Desktop) --- */
 nav.glass-nav {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     background: #1f2937; 
@@ -125,7 +126,7 @@ nav.glass-nav {
 .cursor { color: var(--accent); animation: blink 1s step-end infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-/* --- SOCIAL BOX --- */
+/* --- SOCIAL BOX (Desktop) --- */
 .social-box {
     position: relative;
     display: inline-flex; 
@@ -237,7 +238,7 @@ nav.glass-nav {
 }
 .search-wrapper input { padding-left: 45px; width: 100%; }
 
-/* --- BIRTHDAY SECTION --- */
+/* --- BIRTHDAY SECTION (Default Grid 2 Columns) --- */
 .birthday-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); 
@@ -259,32 +260,146 @@ nav.glass-nav {
     overflow: hidden;
 }
 
+/* 1. TODAY CARD (Massive & Heroic) */
+.birthday-today-card {
+    grid-column: span 2; /* Full Width */
+    background: radial-gradient(circle at 50% 0%, #2563eb 0%, #172554 100%) !important;
+    border: 3px solid #fbbf24 !important; /* Gold Border */
+    box-shadow: 0 0 30px rgba(37, 99, 235, 0.3);
+    padding: 40px 20px !important;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    animation: glowPulse 3s infinite alternate;
+}
+
+@keyframes glowPulse {
+    from { box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
+    to { box-shadow: 0 0 40px rgba(251, 191, 36, 0.5); }
+}
+
+.b-sub-label {
+    font-size: 0.85rem;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.birthday-today-card h3 {
+    font-size: 2.5rem !important; 
+    margin: 10px 0 !important;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.b-wish-text {
+    font-size: 1.1rem;
+    color: #bfdbfe;
+    margin-bottom: 25px;
+}
+
+/* Confetti Background */
+.confetti-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(#fbbf24 2px, transparent 2px), radial-gradient(#ffffff 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+/* Wish Buttons */
+.wish-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 25px;
+    width: 100%;
+}
+
+.wish-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wish-btn:hover {
+    background: white;
+    color: #1e3a8a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.wish-btn:active { transform: scale(0.95); }
+
+.wish-count {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.wish-btn:hover .wish-count { background: #1e3a8a; color: white; }
+
+/* Animation: Subtle Pop for Spam */
+.spam-pulse { 
+    transform: scale(0.95);
+    background: white !important;
+    color: #2563eb !important;
+    transition: transform 0.1s ease; /* Fast transition */
+}
+
+/* Rank 1 (Next Upcoming - Blue) */
 .b-card.rank-1 {
     grid-column: span 2;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(255, 255, 255, 0.05));
-    border-color: var(--accent);
-    padding: 40px 20px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(255, 255, 255, 0.05));
+    border-color: rgba(59, 130, 246, 0.4);
+    padding: 25px 20px;
+    position: relative;
 }
-.b-card.rank-1 h3 { font-size: 1.8rem; margin-bottom: 5px; }
-.b-card.rank-1 .b-date { font-size: 1.1rem; opacity: 0.9; }
-.b-card.rank-1 .b-countdown { font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-top: 10px; }
-.b-card.rank-1::before {
-    content: '🎉 Upcoming';
+.upcoming-badge {
     position: absolute; top: 10px; right: 15px;
-    font-size: 0.8rem; background: var(--accent); color: white;
-    padding: 4px 10px; border-radius: 20px;
+    font-size: 0.75rem; background: var(--accent); color: white;
+    padding: 4px 12px; border-radius: 20px; font-weight: 600;
 }
+.b-card.rank-1 h3 { font-size: 1.5rem; margin-bottom: 5px; }
+.b-card.rank-1 .b-date { font-size: 1rem; opacity: 0.9; }
+.b-card.rank-1 .b-countdown { font-size: 1.3rem; font-weight: 700; color: var(--accent); margin-top: 10px; }
 
-.b-card.rank-2, .b-card.rank-3 {
-    background: rgba(255, 255, 255, 0.05);
+/* Rank 2 (Cyan) */
+.b-card.rank-2 {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(15, 23, 42, 0.4));
+    border: 1px solid rgba(34, 211, 238, 0.3);
     padding: 25px 15px;
 }
+.b-card.rank-2 h3 { color: #67e8f9; }
+.b-card.rank-2 .b-countdown { color: white; }
+
+/* Rank 3 (Emerald) */
+.b-card.rank-3 {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(15, 23, 42, 0.4));
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    padding: 25px 15px;
+}
+.b-card.rank-3 h3 { color: #6ee7b7; }
+.b-card.rank-3 .b-countdown { color: white; }
+
 .b-card.rank-2 h3, .b-card.rank-3 h3 { font-size: 1.1rem; }
-.b-card.rank-2 .b-countdown, .b-card.rank-3 .b-countdown { font-size: 1.1rem; font-weight: 600; color: white; }
+.b-card.rank-2 .b-countdown, .b-card.rank-3 .b-countdown { font-size: 1.1rem; font-weight: 600; }
 
-.b-card.rank-4, .b-card.rank-5 { padding: 15px; }
-.b-card.rank-4 h3, .b-card.rank-5 h3 { font-size: 0.95rem; }
-
+/* Standard Cards */
 .b-card.rank-standard {
     grid-column: span 2;
     flex-direction: row;
@@ -337,7 +452,7 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 .status-present { background: rgba(16, 185, 129, 0.1); color: var(--success); }
 .status-absent { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
-/* --- TOAST NOTIFICATIONS (Fixed: Top Right) --- */
+/* --- TOAST NOTIFICATIONS (Top Right) --- */
 #toast-container { 
     position: fixed; 
     top: 90px; 
@@ -372,18 +487,17 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 
 /* --- MOBILE OPTIMIZATION (CRITICAL FIXES) --- */
 @media (max-width: 768px) {
-    /* 1. Fix Home Layout Spacing */
     #home { 
-        padding-bottom: 160px; /* Huge padding to push content above nav */
+        padding-bottom: 160px; 
         justify-content: center;
     }
 
     .page-section { 
         padding-top: 80px; 
-        padding-bottom: 140px; /* Ensure content isn't covered by nav */
+        padding-bottom: 140px; 
     }
     
-    /* 2. Nav bar at bottom - FORCE ICON ONLY */
+    /* 1. FORCE ICON ONLY NAV */
     nav.glass-nav { 
         top: auto; bottom: 20px; width: 92%; max-width: 400px; 
         justify-content: space-between; gap: 0; padding: 8px 12px;
@@ -397,48 +511,42 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
         justify-content: center; 
         background: transparent !important; 
         opacity: 0.5; 
-        width: 100%; /* Ensure click target is adequate */
+        width: 100%; 
     }
     .nav-btn.active { 
         opacity: 1; 
         color: var(--accent); 
-        background: transparent !important; /* Force transparent, remove pill */
+        background: transparent !important; 
         transform: scale(1.1); 
         box-shadow: none !important; 
     }
-    .nav-btn i { 
-        font-size: 1.4rem; 
-        margin: 0; 
-    } 
+    .nav-btn i { font-size: 1.4rem; margin: 0; } 
     /* Force HIDE Text on Mobile */
-    .nav-btn span { 
-        display: none !important; 
-    }
+    .nav-btn span { display: none !important; }
     
     .controls-grid { grid-template-columns: 1fr; gap: 10px; }
     .balance-amount { font-size: 2.5rem; }
     
-    /* 3. Fix Facebook Button Size */
+    /* 2. FIX FACEBOOK BUTTON SQUISH */
     .social-box {
-        padding: 6px 14px; 
-        font-size: 0.75rem; 
+        padding: 8px 16px; 
+        font-size: 0.8rem; 
         gap: 6px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         background: rgba(30, 41, 59, 0.9);
-        /* Reset positioning just in case */
         position: relative;
         bottom: auto; left: auto; transform: none;
+        max-width: 90%;
+        justify-content: center;
     }
     .social-box:hover { transform: translateY(-2px); }
     
-    /* 4. Footer Adjustment */
     .footer-credit { 
         font-size: 0.65rem;
         opacity: 0.6;
         margin-bottom: 0;
     }
 
-    /* 5. Inputs & Modals */
     .modal-glass {
         width: 100%; max-width: 100%;
         margin: 0; border-radius: 20px 20px 0 0;
@@ -449,181 +557,23 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
     
     .record-card { flex-direction: column; gap: 12px; }
     .violation-badge { width: 100%; text-align: center; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
-    .birthday-grid { grid-template-columns: 1fr; }
-    .b-card.rank-1 { grid-column: span 1; }
-    .b-card.rank-standard { grid-column: span 1; }
+    
+    /* 3. MOBILE GRID FIX (NO MORE SQUISHING) */
+    .birthday-grid { 
+        grid-template-columns: 1fr !important; /* Forces 1 Column */
+    }
+    /* Reset spans for 1 column */
+    .birthday-today-card, .b-card.rank-1, .b-card.rank-standard {
+        grid-column: span 1 !important;
+    }
+    
+    /* Adjust Today Card for Mobile */
+    .birthday-today-card h3 { font-size: 1.8rem !important; }
+    .b-wish-text { font-size: 1rem; }
+    .wish-buttons-container { flex-direction: column; }
+    .wish-btn { width: 100%; justify-content: center; }
     
     input, select, textarea { font-size: 16px !important; }
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-/* --- BIRTHDAY TODAY STYLES --- */
-.birthday-today-card {
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e1b4b 100%) !important;
-    border: 2px solid #60a5fa !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.confetti-bg {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-image: radial-gradient(#60a5fa 2px, transparent 2px), radial-gradient(#ffffff 1px, transparent 1px);
-    background-size: 30px 30px;
-    background-position: 0 0, 15px 15px;
-    opacity: 0.1;
-    pointer-events: none;
-}
-
-.wish-buttons-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 20px;
-    width: 100%;
-}
-
-.wish-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 10px 18px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-family: inherit;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.wish-btn:hover {
-    background: white;
-    color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-.wish-btn:active {
-    transform: scale(0.95);
-}
-
-.wish-count {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.wish-btn:hover .wish-count {
-    background: var(--accent);
-    color: white;
-}
-
-/* Click Animation */
-.clicked-pulse {
-    animation: pulseBtn 0.3s ease;
-}
-@keyframes pulseBtn {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-@media (max-width: 768px) {
-    .wish-btn {
-        width: 100%; /* Full width buttons on mobile */
-        justify-content: center;
-    }
-}
-/* --- UPDATED BIRTHDAY STYLES --- */
-
-/* 1. TODAY CARD (Massive & Heroic) */
-.birthday-today-card {
-    grid-column: span 2; /* Full Width */
-    background: radial-gradient(circle at 50% 0%, #2563eb 0%, #172554 100%) !important;
-    border: 3px solid #fbbf24 !important; /* Gold Border */
-    box-shadow: 0 0 30px rgba(37, 99, 235, 0.3);
-    padding: 40px 20px !important;
-    position: relative;
-    overflow: hidden;
-    text-align: center;
-    animation: glowPulse 3s infinite alternate;
-}
-
-@keyframes glowPulse {
-    from { box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
-    to { box-shadow: 0 0 40px rgba(251, 191, 36, 0.5); }
-}
-
-.b-sub-label {
-    font-size: 0.85rem;
-    color: #fbbf24;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 5px;
-    font-weight: 700;
-}
-
-.birthday-today-card h3 {
-    font-size: 2.5rem !important; /* Huge Name */
-    margin: 10px 0 !important;
-    color: white;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.b-wish-text {
-    font-size: 1.1rem;
-    color: #bfdbfe;
-    margin-bottom: 25px;
-}
-
-/* 2. SPAM CLICK ANIMATION (Subtle Pop) */
-.spam-pulse {
-    transform: scale(0.95);
-    background: white !important;
-    color: #2563eb !important;
-}
-
-/* 3. RANK 1 (Upcoming - Next Person) */
-.b-card.rank-1 {
-    position: relative;
-    grid-column: span 2;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(255, 255, 255, 0.05));
-    border-color: rgba(59, 130, 246, 0.4);
-    padding: 25px 20px;
-}
-.upcoming-badge {
-    position: absolute; top: 10px; right: 15px;
-    font-size: 0.75rem; background: var(--accent); color: white;
-    padding: 4px 12px; border-radius: 20px; font-weight: 600;
-}
-
-/* 4. PASTEL RANKS (No Pink/Purple) */
-/* Rank 2: Cyan/Sky */
-.b-card.rank-2 {
-    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(15, 23, 42, 0.4));
-    border: 1px solid rgba(34, 211, 238, 0.3);
-}
-.b-card.rank-2 h3 { color: #67e8f9; }
-.b-card.rank-2 .b-countdown { color: white; }
-
-/* Rank 3: Emerald/Teal */
-.b-card.rank-3 {
-    background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(15, 23, 42, 0.4));
-    border: 1px solid rgba(52, 211, 153, 0.3);
-}
-.b-card.rank-3 h3 { color: #6ee7b7; }
-.b-card.rank-3 .b-countdown { color: white; }
-
-/* Mobile Adjustments for Big Card */
-@media (max-width: 768px) {
-    .birthday-today-card h3 { font-size: 1.8rem !important; }
-    .b-wish-text { font-size: 1rem; }
-    .wish-buttons-container { flex-direction: column; }
-    .wish-btn { width: 100%; justify-content: center; }
-}
