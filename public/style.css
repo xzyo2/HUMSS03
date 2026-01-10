@@ -13,13 +13,12 @@
     --success: #10b981;
 }
 
-/* --- SECRETARY THEME (Matte Pink) --- */
+
 body.theme-pink {
     --accent: #ec4899; 
     --glass-bg: #2d1e25;
 }
 
-/* --- SCROLLBAR STABILITY --- */
 html { scrollbar-gutter: stable; }
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
@@ -458,3 +457,86 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* --- BIRTHDAY TODAY STYLES --- */
+.birthday-today-card {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e1b4b 100%) !important;
+    border: 2px solid #60a5fa !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.confetti-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: radial-gradient(#60a5fa 2px, transparent 2px), radial-gradient(#ffffff 1px, transparent 1px);
+    background-size: 30px 30px;
+    background-position: 0 0, 15px 15px;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.wish-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.wish-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wish-btn:hover {
+    background: white;
+    color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.wish-btn:active {
+    transform: scale(0.95);
+}
+
+.wish-count {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.wish-btn:hover .wish-count {
+    background: var(--accent);
+    color: white;
+}
+
+/* Click Animation */
+.clicked-pulse {
+    animation: pulseBtn 0.3s ease;
+}
+@keyframes pulseBtn {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+    .wish-btn {
+        width: 100%; /* Full width buttons on mobile */
+        justify-content: center;
+    }
+}
