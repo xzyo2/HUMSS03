@@ -540,3 +540,90 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
         justify-content: center;
     }
 }
+/* --- UPDATED BIRTHDAY STYLES --- */
+
+/* 1. TODAY CARD (Massive & Heroic) */
+.birthday-today-card {
+    grid-column: span 2; /* Full Width */
+    background: radial-gradient(circle at 50% 0%, #2563eb 0%, #172554 100%) !important;
+    border: 3px solid #fbbf24 !important; /* Gold Border */
+    box-shadow: 0 0 30px rgba(37, 99, 235, 0.3);
+    padding: 40px 20px !important;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    animation: glowPulse 3s infinite alternate;
+}
+
+@keyframes glowPulse {
+    from { box-shadow: 0 0 20px rgba(251, 191, 36, 0.2); }
+    to { box-shadow: 0 0 40px rgba(251, 191, 36, 0.5); }
+}
+
+.b-sub-label {
+    font-size: 0.85rem;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.birthday-today-card h3 {
+    font-size: 2.5rem !important; /* Huge Name */
+    margin: 10px 0 !important;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.b-wish-text {
+    font-size: 1.1rem;
+    color: #bfdbfe;
+    margin-bottom: 25px;
+}
+
+/* 2. SPAM CLICK ANIMATION (Subtle Pop) */
+.spam-pulse {
+    transform: scale(0.95);
+    background: white !important;
+    color: #2563eb !important;
+}
+
+/* 3. RANK 1 (Upcoming - Next Person) */
+.b-card.rank-1 {
+    position: relative;
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(255, 255, 255, 0.05));
+    border-color: rgba(59, 130, 246, 0.4);
+    padding: 25px 20px;
+}
+.upcoming-badge {
+    position: absolute; top: 10px; right: 15px;
+    font-size: 0.75rem; background: var(--accent); color: white;
+    padding: 4px 12px; border-radius: 20px; font-weight: 600;
+}
+
+/* 4. PASTEL RANKS (No Pink/Purple) */
+/* Rank 2: Cyan/Sky */
+.b-card.rank-2 {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(15, 23, 42, 0.4));
+    border: 1px solid rgba(34, 211, 238, 0.3);
+}
+.b-card.rank-2 h3 { color: #67e8f9; }
+.b-card.rank-2 .b-countdown { color: white; }
+
+/* Rank 3: Emerald/Teal */
+.b-card.rank-3 {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(15, 23, 42, 0.4));
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.b-card.rank-3 h3 { color: #6ee7b7; }
+.b-card.rank-3 .b-countdown { color: white; }
+
+/* Mobile Adjustments for Big Card */
+@media (max-width: 768px) {
+    .birthday-today-card h3 { font-size: 1.8rem !important; }
+    .b-wish-text { font-size: 1rem; }
+    .wish-buttons-container { flex-direction: column; }
+    .wish-btn { width: 100%; justify-content: center; }
+}
