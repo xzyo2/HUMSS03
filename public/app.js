@@ -1,28 +1,24 @@
-
-
 let cachedAttendanceData = []; 
 let cachedViolationData = [];
 let fundsPage = 1;
+
 document.addEventListener('DOMContentLoaded', () => {
-    typeWriter(); // from utils.js
+    typeWriter();
 
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('viewDate').value = START_DATE; 
     document.getElementById('adminDate').value = START_DATE;
     if(document.getElementById('fundDate')) document.getElementById('fundDate').value = today;
 
-    // Load Dropdowns
     loadStudentChecklist(); 
     loadViolationDropdown();
 
-    // Check URL Hash for direct link
     if(window.location.hash === '#attendance') showSection('attendance');
     if(window.location.hash === '#funds') showSection('funds');
     if(window.location.hash === '#records') showSection('records');
     if(window.location.hash === '#birthdays') showSection('birthdays');
 });
 
-// --- NAVIGATION ---
 function showSection(id) {
     document.querySelectorAll('.page-section').forEach(sec => {
         sec.classList.remove('active-section');
@@ -34,19 +30,16 @@ function showSection(id) {
     if(id === 'home') target.style.display = 'flex';
     target.classList.add('active-section');
     
-    // Update Nav Buttons
     const map = { 'home': 0, 'attendance': 1, 'funds': 2, 'records': 3, 'birthdays': 4 };
     const navButtons = document.querySelectorAll('.nav-btn');
     if(navButtons[map[id]]) navButtons[map[id]].classList.add('active');
 
-    // Load Data
     if(id === 'attendance') loadAttendance();
     if(id === 'funds') { fundsPage = 1; loadFunds(); }
     if(id === 'records') loadRecords();
     if(id === 'birthdays') loadBirthdays();
 }
 
-// ================= ATTENDANCE LOGIC =================
 async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     const selectedDate = document.getElementById('viewDate').value;
@@ -76,7 +69,6 @@ function openAttendanceEditor() {
     const modal = document.getElementById('adminModal');
     modal.style.display = 'block';
     
-    // Show Dashboard, Hide others
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('logoutView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'none';
@@ -118,7 +110,7 @@ async function submitAttendance() {
     if(!date) { showToast("Please select a date", "error"); return; }
     
     const saveBtn = document.getElementById('saveBtn');
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; // Added spin animation too
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; 
     saveBtn.disabled = true;
 
     const checkboxes = document.querySelectorAll('.absent-checkbox');
@@ -131,7 +123,6 @@ async function submitAttendance() {
         const res = await fetch('/api/attendance', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // FIXED: Added "date: date" to the payload below
             body: JSON.stringify({ 
                 action: 'save', 
                 records: records, 
@@ -150,7 +141,6 @@ async function submitAttendance() {
             showToast(data.error || "Failed to save", "error");
         }
     } catch (e) {
-        console.error(e);
         showToast("Server Error", "error");
     } finally {
         saveBtn.innerText = "Save Records";
@@ -181,7 +171,6 @@ async function deleteDateRecords() {
     }
 }
 
-// ================= FUNDS LOGIC =================
 async function refreshFunds() {
     const icon = document.getElementById('refreshIcon');
     if(icon) icon.classList.add('fa-spin');
@@ -223,7 +212,6 @@ async function loadFunds(append = false) {
             const colorClass = t.type === 'income' ? 'income' : 'expense';
             
             let deleteBtnHtml = '';
-            // Allow Treasurer OR Operator
             if (currentUserRole === 'treasurer' || currentUserRole === 'operator') {
                 deleteBtnHtml = `<button class="t-delete-btn" onclick="deleteFundTransaction(${t.id})" title="Delete"><i class="fas fa-times"></i></button>`;
             }
@@ -310,7 +298,6 @@ async function deleteFundTransaction(id) {
     }
 }
 
-// ================= RECORDS LOGIC =================
 async function loadRecords() {
     const container = document.getElementById('recordsList');
     const filter = document.getElementById('recordSearchBar').value.toLowerCase();
@@ -349,7 +336,6 @@ async function loadRecords() {
                 let cursorStyle = '';
                 let hoverTitle = '';
                 
-                // Allow Admin OR Operator
                 if (currentUserRole === 'admin' || currentUserRole === 'operator') {
                     clickAction = `onclick="viewStudentHistory('${s.name}')"`;
                     cursorStyle = 'cursor: pointer;';
@@ -492,7 +478,6 @@ async function deleteViolation(id, studentName) {
     }
 }
 
-// ================= BIRTHDAYS LOGIC =================
 async function loadBirthdays() {
     const container = document.getElementById('birthdayGrid');
     container.innerHTML = '';
@@ -502,14 +487,12 @@ async function loadBirthdays() {
     
     let processedBirthdays = [];
 
-    // 1. Process Real Students
     CLASS_LIST.forEach(studentName => {
         const bdayRecord = BIRTHDAY_DATA.find(b => b.name === studentName);
         if (bdayRecord) {
             const [month, day] = bdayRecord.date.split('-').map(Number);
             let nextBday = new Date(currentYear, month - 1, day);
             
-            // Reset time to midnight to ensure accurate day calculation
             nextBday.setHours(0,0,0,0);
             const todayMid = new Date();
             todayMid.setHours(0,0,0,0);
@@ -535,124 +518,117 @@ async function loadBirthdays() {
         }
     });
 
-    // 2. Inject TEST User if Debug is ON
     if (typeof ENABLE_TEST_BIRTHDAY !== 'undefined' && ENABLE_TEST_BIRTHDAY) {
         processedBirthdays.push({
             name: "Test",
             displayDate: "Today (Debug)",
-            diffDays: 0, // Force it to be today
+            diffDays: 0,
             hasData: true
         });
     }
 
-    // 3. Sort
     processedBirthdays.sort((a, b) => a.diffDays - b.diffDays);
 
-    // 4. Render
-    for (let index = 0; index < processedBirthdays.length; index++) {
-        const b = processedBirthdays[index];
-        let html = '';
+    const todaysBirthdays = processedBirthdays.filter(b => b.diffDays === 0 && b.hasData);
+    const upcomingBirthdays = processedBirthdays.filter(b => b.diffDays > 0 || !b.hasData);
 
-        // --- IS IT TODAY? (0 Days Left) ---
-        if (b.diffDays === 0 && b.hasData) {
-            // Fetch first name for the button text
-            const firstName = b.name.split(',')[1] ? b.name.split(',')[1].trim().split(' ')[0] : b.name;
+    for (let b of todaysBirthdays) {
+        const firstName = b.name.split(',')[1] ? b.name.split(',')[1].trim().split(' ')[0] : b.name;
+        const buttons = [
+            { id: 1, text: `Happy Birthday, ${firstName} 🎂` },
+            { id: 2, text: `More Days to Come! 🎈` },
+            { id: 3, text: `Another year, another win 🎉` }
+        ];
+        buttons.sort(() => Math.random() - 0.5);
 
-            // Define Buttons
-            const buttons = [
-                { id: 1, text: `Happy Birthday, ${firstName} 🎂` },
-                { id: 2, text: `More Days to Come! 🎈` },
-                { id: 3, text: `Another year, another win 🎉` }
-            ];
+        let counts = { 1: 0, 2: 0, 3: 0 };
+        try {
+            const res = await fetch(`/api/wishes?name=${encodeURIComponent(b.name)}`);
+            const data = await res.json();
+            data.forEach(row => counts[row.wish_id] = row.count);
+        } catch(e) {}
 
-            // Randomize Buttons
-            buttons.sort(() => Math.random() - 0.5);
+        let buttonsHtml = buttons.map(btn => `
+            <button class="wish-btn" onclick="sendWish(this, '${b.name}', ${btn.id})">
+                ${btn.text} <span class="wish-count badge">${counts[btn.id]}</span>
+            </button>
+        `).join('');
 
-            // Fetch initial counts from DB
-            let counts = { 1: 0, 2: 0, 3: 0 };
-            try {
-                const res = await fetch(`/api/wishes?name=${encodeURIComponent(b.name)}`);
-                const data = await res.json();
-                data.forEach(row => counts[row.wish_id] = row.count);
-            } catch(e) { console.error("Error fetching wishes", e); }
-
-            // Generate Button HTML
-            let buttonsHtml = buttons.map(btn => `
-                <button class="wish-btn" onclick="sendWish(this, '${b.name}', ${btn.id})">
-                    ${btn.text} <span class="wish-count badge">${counts[btn.id]}</span>
-                </button>
-            `).join('');
-
-            // "Today!" Card Layout
-            html = `
-                <div class="b-card rank-1 birthday-today-card">
-                    <div class="confetti-bg"></div>
-                    <h3>${b.name}</h3>
-                    <div class="b-date">${b.displayDate}</div>
-                    <div class="b-countdown time-red" style="font-size: 2rem;">Today!</div>
-                    <div class="wish-buttons-container">
-                        ${buttonsHtml}
-                    </div>
+        const html = `
+            <div class="b-card birthday-today-card">
+                <div class="confetti-bg"></div>
+                <h3>${b.name}</h3>
+                <div class="b-date">${b.displayDate}</div>
+                <div class="b-countdown" style="font-size: 2rem; color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">Today!</div>
+                <div class="wish-buttons-container">
+                    ${buttonsHtml}
                 </div>
-            `;
-        } 
-        // --- NORMAL LIST ---
-        else {
-            let rankClass = 'rank-standard';
-            if (b.hasData) {
-                if (index === 0) rankClass = 'rank-1'; // Logic: If someone is today, they take rank-1, otherwise nearest is rank-1
-                else if (index < 5) rankClass = `rank-${index + 1}`; // Simple fallback ranking
-            }
-
-            let timeText = b.hasData ? `${b.diffDays} Days Left` : "--";
-            let timeClass = "";
-            if (b.diffDays < 3) timeClass = "time-red";
-
-            // Standard HTML (same as before)
-            if (b.hasData && index === 0 && b.diffDays !== 0) {
-                 html = `<div class="b-card rank-1"><h3>${b.name}</h3><div class="b-date">${b.displayDate}</div><div class="b-countdown ${timeClass}">${timeText}</div></div>`;
-            } else if (b.hasData && index < 5) {
-                html = `<div class="b-card ${rankClass}"><h3>${b.name}</h3><div class="b-countdown ${timeClass}">${timeText}</div><div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div></div>`;
-            } else {
-                const dimStyle = !b.hasData ? 'opacity: 0.5;' : '';
-                html = `<div class="b-card rank-standard" style="${dimStyle}"><div class="b-info"><h3>${b.name}</h3><div class="b-date">${b.displayDate}</div></div><div class="b-countdown ${timeClass}">${timeText}</div></div>`;
-            }
-        }
+            </div>
+        `;
         container.insertAdjacentHTML('beforeend', html);
     }
+
+    upcomingBirthdays.forEach((b, index) => {
+        let rankClass = 'rank-standard';
+        
+        if (b.hasData) {
+            if (index === 0) rankClass = 'rank-1'; // Upcoming 1
+            else if (index === 1) rankClass = 'rank-2'; // Upcoming 2 (Cyan)
+            else if (index === 2) rankClass = 'rank-3'; // Upcoming 3 (Green)
+            else if (index < 5) rankClass = `rank-standard`; 
+        }
+
+        let timeText = b.hasData ? `${b.diffDays} Days Left` : "--";
+        let timeClass = "";
+        if (b.diffDays < 3 && b.hasData) timeClass = "time-red";
+
+        let html = '';
+        
+        if (b.hasData && index === 0) {
+             html = `
+                <div class="b-card ${rankClass}">
+                    <h3>${b.name}</h3>
+                    <div class="b-date">${b.displayDate}</div>
+                    <div class="b-countdown ${timeClass}">${timeText}</div>
+                </div>`;
+        } else if (b.hasData && (index === 1 || index === 2)) {
+             html = `
+                <div class="b-card ${rankClass}">
+                    <h3>${b.name}</h3>
+                    <div class="b-countdown ${timeClass}">${timeText}</div>
+                    <div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div>
+                </div>`;
+        } else {
+            const dimStyle = !b.hasData ? 'opacity: 0.5;' : '';
+            html = `
+                <div class="b-card ${rankClass}" style="${dimStyle}">
+                    <div class="b-info">
+                        <h3>${b.name}</h3>
+                        <div class="b-date">${b.displayDate}</div>
+                    </div>
+                    <div class="b-countdown ${timeClass}">${timeText}</div>
+                </div>`;
+        }
+        container.insertAdjacentHTML('beforeend', html);
+    });
 }
 
-async function sendWish(btnElement, studentName, wishId) {
-    // 1. Optimistic UI Update
+function sendWish(btnElement, studentName, wishId) {
     const countSpan = btnElement.querySelector('.wish-count');
     let currentCount = parseInt(countSpan.innerText) || 0;
     countSpan.innerText = currentCount + 1;
     
-    // Add animation effect
     btnElement.classList.add('clicked-pulse');
     setTimeout(() => btnElement.classList.remove('clicked-pulse'), 300);
 
-    // 2. Send to Server
-    try {
-        const res = await fetch('/api/wishes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: studentName, wishId: wishId })
-        });
-        const data = await res.json();
-        
-        // 3. Sync with server truth
-        if (data.newCount) {
-            countSpan.innerText = data.newCount;
-        }
-    } catch (e) {
-        console.error("Failed to send wish");
-        // Revert on failure
-        countSpan.innerText = currentCount; 
-        showToast("Connection failed", "error");
-    }
+    fetch('/api/wishes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: studentName, wishId: wishId })
+    }).catch(e => {
+        console.error("Wish failed");
+    });
 }
-
 
 function filterAttendance() {
     const input = document.getElementById('searchBar').value.toLowerCase();
