@@ -1,3 +1,6 @@
+// Global interval variable
+let birthdayLiveUpdateInterval = null;
+
 let cachedAttendanceData = []; 
 let cachedViolationData = [];
 let fundsPage = 1;
@@ -40,6 +43,7 @@ function showSection(id) {
     if(id === 'birthdays') loadBirthdays();
 }
 
+// --- ATTENDANCE ---
 async function loadAttendance() {
     const tbody = document.getElementById('attendanceTableBody');
     const selectedDate = document.getElementById('viewDate').value;
@@ -68,7 +72,6 @@ async function loadAttendance() {
 function openAttendanceEditor() {
     const modal = document.getElementById('adminModal');
     modal.style.display = 'block';
-    
     document.getElementById('loginView').style.display = 'none';
     document.getElementById('logoutView').style.display = 'none';
     document.getElementById('fundsDashboardView').style.display = 'none';
@@ -171,6 +174,7 @@ async function deleteDateRecords() {
     }
 }
 
+// --- FUNDS ---
 async function refreshFunds() {
     const icon = document.getElementById('refreshIcon');
     if(icon) icon.classList.add('fa-spin');
@@ -298,6 +302,7 @@ async function deleteFundTransaction(id) {
     }
 }
 
+// --- RECORDS ---
 async function loadRecords() {
     const container = document.getElementById('recordsList');
     const filter = document.getElementById('recordSearchBar').value.toLowerCase();
@@ -478,14 +483,12 @@ async function deleteViolation(id, studentName) {
     }
 }
 
-// Global interval variable to clear previous timers when switching tabs
-let birthdayLiveUpdateInterval = null;
-
+// ================= BIRTHDAYS LOGIC =================
 async function loadBirthdays() {
     const container = document.getElementById('birthdayGrid');
     container.innerHTML = '';
     
-    // Clear any existing live update timers to prevent duplicates
+    // Clear previous polling
     if (birthdayLiveUpdateInterval) clearInterval(birthdayLiveUpdateInterval);
 
     const today = new Date();
@@ -536,9 +539,9 @@ async function loadBirthdays() {
     const todaysBirthdays = processedBirthdays.filter(b => b.diffDays === 0 && b.hasData);
     const upcomingBirthdays = processedBirthdays.filter(b => b.diffDays > 0 || !b.hasData);
 
-    // --- RENDER TODAY (With Real-Time Updates) ---
+    // --- RENDER TODAY ---
+    // Start Polling if there are birthdays today
     if (todaysBirthdays.length > 0) {
-        // Start Polling for Real-Time Updates (Every 2 seconds)
         birthdayLiveUpdateInterval = setInterval(() => updateLiveCounts(todaysBirthdays), 2000);
     }
 
@@ -550,9 +553,8 @@ async function loadBirthdays() {
             { id: 2, text: `More Days to Come! 🎈` },
             { id: 3, text: `Another year, another win 🎉` }
         ];
-        // Note: Removed random sort so buttons don't jump around during re-renders
-        
-        // Initial Fetch
+        // Note: No random sort here to prevent jumping buttons
+
         let counts = { 1: 0, 2: 0, 3: 0 };
         try {
             const res = await fetch(`/api/wishes?name=${encodeURIComponent(b.name)}`);
@@ -589,11 +591,11 @@ async function loadBirthdays() {
         
         if (b.hasData) {
             if (index === 0) {
-                rankClass = 'rank-1'; 
+                rankClass = 'rank-1'; // Rank 1 (Blue)
                 badgeHtml = `<div class="upcoming-badge">🚀 Upcoming</div>`;
             } 
-            else if (index === 1) rankClass = 'rank-2'; 
-            else if (index === 2) rankClass = 'rank-3'; 
+            else if (index === 1) rankClass = 'rank-2'; // Rank 2 (Cyan)
+            else if (index === 2) rankClass = 'rank-3'; // Rank 3 (Emerald)
         }
 
         let timeText = b.hasData ? `${b.diffDays} Days Left` : "--";
@@ -609,14 +611,16 @@ async function loadBirthdays() {
                     <div class="b-date">${b.displayDate}</div>
                     <div class="b-countdown ${timeClass}">${timeText}</div>
                 </div>`;
-        } else if (b.hasData && (index === 1 || index === 2)) {
+        } 
+        else if (b.hasData && (index === 1 || index === 2)) {
              html = `
                 <div class="b-card ${rankClass}">
                     <h3>${b.name}</h3>
                     <div class="b-countdown ${timeClass}">${timeText}</div>
                     <div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div>
                 </div>`;
-        } else {
+        } 
+        else {
             const dimStyle = !b.hasData ? 'opacity: 0.5;' : '';
             html = `
                 <div class="b-card rank-standard" style="${dimStyle}">
@@ -631,76 +635,46 @@ async function loadBirthdays() {
     });
 }
 
-// --- NEW FUNCTION: Live Updates ---
+// Live Update Poller
 async function updateLiveCounts(todaysBirthdays) {
     for (let b of todaysBirthdays) {
         try {
             const res = await fetch(`/api/wishes?name=${encodeURIComponent(b.name)}`);
             const data = await res.json();
             
-            // Loop through the data and update DOM elements directly
             data.forEach(row => {
-                // Construct ID (must match what we generated in loadBirthdays)
                 const btnId = `btn-${b.name.replace(/\s/g, '')}-${row.wish_id}`;
                 const btn = document.getElementById(btnId);
                 if (btn) {
                     const countSpan = btn.querySelector('.wish-count');
-                    // Only update if number changed (prevents flicker)
+                    // Only update if changed (prevents flickering)
                     if (countSpan.innerText != row.count) {
                         countSpan.innerText = row.count;
-                        // Optional: Add a subtle flash effect on update
-                        countSpan.style.transform = "scale(1.2)";
-                        setTimeout(() => countSpan.style.transform = "scale(1)", 200);
                     }
                 }
             });
-        } catch(e) { console.error("Live update failed", e); }
+        } catch(e) {}
     }
 }
 
-// Keep sendWish mostly the same, but remove the fetch .then block
-// We rely on the live poller or the optimistic update.
 function sendWish(btnElement, studentName, wishId) {
     const countSpan = btnElement.querySelector('.wish-count');
     let currentCount = parseInt(countSpan.innerText) || 0;
     
-    // Optimistic Update
+    // Optimistic Update (No animation classes added here)
     countSpan.innerText = currentCount + 1;
     
-    btnElement.classList.add('spam-pulse');
-    setTimeout(() => btnElement.classList.remove('spam-pulse'), 100);
-
-    // Fire and Forget (The poller will sync it shortly after)
+    // Fire & Forget
     fetch('/api/wishes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: studentName, wishId: wishId })
     }).catch(e => {
-        countSpan.innerText = currentCount; // Revert on error
-    });
-}
-
-function sendWish(btnElement, studentName, wishId) {
-    const countSpan = btnElement.querySelector('.wish-count');
-    let currentCount = parseInt(countSpan.innerText) || 0;
-    
-    // Instant Update
-    countSpan.innerText = currentCount + 1;
-    
-    // Fast Animation for Spamming (100ms)
-    btnElement.classList.add('spam-pulse');
-    setTimeout(() => btnElement.classList.remove('spam-pulse'), 100);
-
-    fetch('/api/wishes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: studentName, wishId: wishId })
-    }).catch(e => {
-        // Revert on error
         countSpan.innerText = currentCount;
     });
 }
 
+// Helpers
 function filterAttendance() {
     const input = document.getElementById('searchBar').value.toLowerCase();
     const rows = document.getElementById('attendanceTableBody').getElementsByTagName('tr');
