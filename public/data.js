@@ -2,7 +2,7 @@
 const START_DATE = "2026-01-12"; 
 
 // --- DEBUG MODE ---
-const ENABLE_TEST_BIRTHDAY = true; // Set to true to see the "Today" card design instantly
+const ENABLE_TEST_BIRTHDAY = false; // Set to true to see the "Today" card design instantly
 
 // CLASS LIST (Surname, Firstname)
 const CLASS_LIST = [
