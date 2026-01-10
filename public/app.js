@@ -487,6 +487,7 @@ async function loadBirthdays() {
     
     let processedBirthdays = [];
 
+    // 1. Process Class List
     CLASS_LIST.forEach(studentName => {
         const bdayRecord = BIRTHDAY_DATA.find(b => b.name === studentName);
         if (bdayRecord) {
@@ -510,30 +511,30 @@ async function loadBirthdays() {
                 diffDays: diffDays,
                 hasData: true
             });
-        } else {
-            processedBirthdays.push({
-                name: studentName, displayDate: "No birthday specified",
-                diffDays: 9999, hasData: false
-            });
         }
     });
 
+    // 2. Inject Test User (Toggle in data.js)
     if (typeof ENABLE_TEST_BIRTHDAY !== 'undefined' && ENABLE_TEST_BIRTHDAY) {
         processedBirthdays.push({
-            name: "Test",
+            name: "Test User",
             displayDate: "Today (Debug)",
             diffDays: 0,
             hasData: true
         });
     }
 
+    // 3. Sort by Date
     processedBirthdays.sort((a, b) => a.diffDays - b.diffDays);
 
+    // 4. Split: Today vs Upcoming
     const todaysBirthdays = processedBirthdays.filter(b => b.diffDays === 0 && b.hasData);
     const upcomingBirthdays = processedBirthdays.filter(b => b.diffDays > 0 || !b.hasData);
 
+    // --- RENDER TODAY (BIGGEST BOX) ---
     for (let b of todaysBirthdays) {
-        const firstName = b.name.split(',')[1] ? b.name.split(',')[1].trim().split(' ')[0] : b.name;
+        const firstName = b.name.split(',')[1] ? b.name.split(',')[1].trim().split(' ')[0] : b.name.split(' ')[0];
+        
         const buttons = [
             { id: 1, text: `Happy Birthday, ${firstName} 🎂` },
             { id: 2, text: `More Days to Come! 🎈` },
@@ -557,51 +558,64 @@ async function loadBirthdays() {
         const html = `
             <div class="b-card birthday-today-card">
                 <div class="confetti-bg"></div>
-                <h3>${b.name}</h3>
-                <div class="b-date">${b.displayDate}</div>
-                <div class="b-countdown" style="font-size: 2rem; color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);">Today!</div>
-                <div class="wish-buttons-container">
-                    ${buttonsHtml}
+                <div class="b-today-content">
+                    <div class="b-sub-label">IT'S THEIR SPECIAL DAY!</div>
+                    <h3>${b.name}</h3>
+                    <div class="b-wish-text">Wish ${firstName} a Happy Birthday!</div>
+                    <div class="wish-buttons-container">
+                        ${buttonsHtml}
+                    </div>
                 </div>
             </div>
         `;
         container.insertAdjacentHTML('beforeend', html);
     }
 
+    // --- RENDER UPCOMING ---
     upcomingBirthdays.forEach((b, index) => {
         let rankClass = 'rank-standard';
+        let badgeHtml = '';
         
         if (b.hasData) {
-            if (index === 0) rankClass = 'rank-1'; // Upcoming 1
-            else if (index === 1) rankClass = 'rank-2'; // Upcoming 2 (Cyan)
-            else if (index === 2) rankClass = 'rank-3'; // Upcoming 3 (Green)
-            else if (index < 5) rankClass = `rank-standard`; 
+            // Because "Today" is handled above, Index 0 here is the NEXT person
+            if (index === 0) {
+                rankClass = 'rank-1'; // Big Blue Box
+                badgeHtml = `<div class="upcoming-badge">🚀 Upcoming</div>`;
+            } 
+            else if (index === 1) rankClass = 'rank-2'; // Cyan
+            else if (index === 2) rankClass = 'rank-3'; // Emerald
         }
 
         let timeText = b.hasData ? `${b.diffDays} Days Left` : "--";
-        let timeClass = "";
-        if (b.diffDays < 3 && b.hasData) timeClass = "time-red";
+        let timeClass = (b.diffDays < 3 && b.hasData) ? "time-red" : "";
 
+        // HTML Templates
         let html = '';
         
+        // Rank 1 (Next Person)
         if (b.hasData && index === 0) {
              html = `
                 <div class="b-card ${rankClass}">
+                    ${badgeHtml}
                     <h3>${b.name}</h3>
                     <div class="b-date">${b.displayDate}</div>
                     <div class="b-countdown ${timeClass}">${timeText}</div>
                 </div>`;
-        } else if (b.hasData && (index === 1 || index === 2)) {
+        } 
+        // Rank 2 & 3 (Pastel Colors)
+        else if (b.hasData && (index === 1 || index === 2)) {
              html = `
                 <div class="b-card ${rankClass}">
                     <h3>${b.name}</h3>
                     <div class="b-countdown ${timeClass}">${timeText}</div>
                     <div class="b-date" style="margin-top:5px; font-size:0.75rem;">${b.displayDate}</div>
                 </div>`;
-        } else {
+        } 
+        // Standard List
+        else {
             const dimStyle = !b.hasData ? 'opacity: 0.5;' : '';
             html = `
-                <div class="b-card ${rankClass}" style="${dimStyle}">
+                <div class="b-card rank-standard" style="${dimStyle}">
                     <div class="b-info">
                         <h3>${b.name}</h3>
                         <div class="b-date">${b.displayDate}</div>
@@ -616,17 +630,21 @@ async function loadBirthdays() {
 function sendWish(btnElement, studentName, wishId) {
     const countSpan = btnElement.querySelector('.wish-count');
     let currentCount = parseInt(countSpan.innerText) || 0;
+    
+    // Instant Update
     countSpan.innerText = currentCount + 1;
     
-    btnElement.classList.add('clicked-pulse');
-    setTimeout(() => btnElement.classList.remove('clicked-pulse'), 300);
+    // Fast Animation for Spamming (100ms)
+    btnElement.classList.add('spam-pulse');
+    setTimeout(() => btnElement.classList.remove('spam-pulse'), 100);
 
     fetch('/api/wishes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: studentName, wishId: wishId })
     }).catch(e => {
-        console.error("Wish failed");
+        // Revert on error
+        countSpan.innerText = currentCount;
     });
 }
 
