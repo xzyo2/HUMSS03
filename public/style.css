@@ -364,7 +364,7 @@ nav.glass-nav {
 /* Rank 1 (Next Upcoming - Blue) */
 .b-card.rank-1 {
     grid-column: span 2;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(255, 255, 255, 0.05));
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(255, 255, 255, 0.05));
     border-color: rgba(59, 130, 246, 0.4);
     padding: 25px 20px;
     position: relative;
@@ -577,3 +577,4 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
