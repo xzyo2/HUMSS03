@@ -376,7 +376,7 @@ nav.glass-nav {
 }
 .b-card.rank-1 h3 { font-size: 1.5rem; margin-bottom: 5px; }
 .b-card.rank-1 .b-date { font-size: 1rem; opacity: 0.9; }
-.b-card.rank-1 .b-countdown { font-size: 1.3rem; font-weight: 700; color: #ef4444;; margin-top: 10px; }
+.b-card.rank-1 .b-countdown { font-size: 1.3rem; font-weight: 700; color: var(--accent); margin-top: 10px; }
 
 /* Rank 2 (Cyan) */
 .b-card.rank-2 {
@@ -577,6 +577,7 @@ th { color: var(--text-muted); font-weight: 500; font-size: 0.85rem; text-transf
 }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
 
 
 
